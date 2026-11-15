@@ -26,7 +26,7 @@ type PageProps = { params: Promise<{ type: string }> }
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { type } = await params
   const libelle = LIBELLE_PAR_CHEMIN[type]
-  if (!libelle) return { title: 'Packs par véhicule' }
+  if (!libelle) return { title: 'Housses et tapis par véhicule' }
 
   return {
     title: libelle.long,

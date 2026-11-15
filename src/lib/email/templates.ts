@@ -424,7 +424,7 @@ export const TEMPLATES: Record<TemplateKey, TemplateDefinition> = {
       reference: 'SAV-2026-0007',
       subject: 'Question sur un produit',
       email: 'client@exemple.fr',
-      message: 'Bonjour, le pack veilleuses convient-il à ma Clio 4 phase 2 ?',
+      message: 'Bonjour, la housse Privilège convient-elle à ma Clio 4 phase 2 avec banquette 1/3 2/3 ?',
     },
   },
 }

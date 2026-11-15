@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   */
     return read.state === 'absent'
       ? { title: 'Modèle introuvable', robots: { index: false, follow: false } }
-      : { title: 'Packs par véhicule' }
+      : { title: 'Housses et tapis par véhicule' }
   }
 
   return {
