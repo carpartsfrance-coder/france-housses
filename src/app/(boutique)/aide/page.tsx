@@ -73,7 +73,7 @@ export default async function AidePage() {
       text:
         guides > 0
           ? `Les gestes par emplacement, et ${guides} guide${guides > 1 ? 's' : ''} par véhicule.`
-          : 'Les gestes à connaître et l’accès aux feux, emplacement par emplacement.',
+          : 'Comment poser vos housses et vos tapis, et les entretenir.',
       action: 'Lire les conseils',
     },
     user

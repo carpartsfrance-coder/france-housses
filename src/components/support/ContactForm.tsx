@@ -163,7 +163,7 @@ export function ContactForm({
         <p className="text-[10px] font-normal text-muted">
           {subject === 'vehicule'
             ? 'La finition, le nombre de places et les accoudoirs achèvent de trancher : deux versions d’un même modèle n’ont pas toujours les mêmes sièges.'
-            : 'Le modèle exact du véhicule et la référence inscrite sur la pièce d’origine sont ce qui évite le plus souvent un aller-retour.'}
+            : 'Le modèle exact du véhicule, son année et une photo des sièges sont ce qui évite le plus souvent un aller-retour.'}
         </p>
       </div>
 

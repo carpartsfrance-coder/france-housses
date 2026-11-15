@@ -50,6 +50,7 @@ export default async function ContactPage({ searchParams }: PageProps) {
       ? { label: 'Téléphone', value: identity.contact.phone, href: `tel:${identity.contact.phone}` }
       : null,
     identity.contact.hours ? { label: 'Horaires', value: identity.contact.hours, href: null } : null,
+    identity.showroom ? { label: 'Showroom', value: identity.showroom, href: null } : null,
   ].filter((item) => item !== null)
 
   return (
