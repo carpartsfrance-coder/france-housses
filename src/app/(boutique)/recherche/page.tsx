@@ -210,7 +210,7 @@ export default async function RecherchePage({
     result
       ? [
           {
-            key: 'culot',
+            key: 'culot' as FacetKey,
             legend: 'Culot',
             items: mergeFacets(result.facets.bases, state.culot),
           },
@@ -224,7 +224,11 @@ export default async function RecherchePage({
             legend: 'Conditionnement',
             items: mergeFacets(result.facets.packagings, state.cond),
           },
-        ]
+        ].filter((groupe) => groupe.key !== 'cond' || groupe.items.length > 1) as Array<{
+          key: FacetKey
+          legend: string
+          items: ReturnType<typeof mergeFacets>
+        }>
       : []
 
   return (

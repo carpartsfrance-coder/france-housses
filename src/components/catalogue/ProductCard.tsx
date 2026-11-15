@@ -166,7 +166,9 @@ export function ProductCard({
                   unavailable ? 'text-muted' : 'text-ok',
                 )}
               >
-                {availabilityLabel(product.availability)}
+                {!unavailable && product.fabriqueALaCommande
+                  ? 'Fabriqué à la commande'
+                  : availabilityLabel(product.availability)}
               </p>
             </div>
 

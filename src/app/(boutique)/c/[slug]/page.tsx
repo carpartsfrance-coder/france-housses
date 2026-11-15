@@ -218,7 +218,7 @@ export default async function CategoryPage({
       facets: result.facets.packagings,
       selected: filters.packagings,
     },
-  ]
+  ].filter((groupe) => groupe.key !== FILTER_KEYS.packagings || groupe.facets.length > 1 || groupe.selected.length > 0)
 
   /** Chaque filtre actif est retirable seul, sans toucher aux autres. */
   const activeChips = (

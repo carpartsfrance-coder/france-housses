@@ -63,6 +63,8 @@ export type ProductListItem = {
   /** Nombre de conditionnements proposés (ampoules seules, kit…). */
   variantCount: number
   availability: Availability
+  /** Fabriqué à la commande (sur mesure ou délai de fabrication) : la carte le dit au lieu de « En stock ». */
+  fabriqueALaCommande: boolean
   /** `null` tant qu'aucun véhicule n'est sélectionné : on n'affirme rien. */
   fitment: FitmentStatus | null
   /**
@@ -555,6 +557,7 @@ async function lireListe(
         })(),
         variantCount: product.variants.length,
         availability,
+        fabriqueALaCommande: product.madeToMeasure || Boolean(product.leadTimeDays),
         fitment: configurationId ? bestStatus(statuses) : null,
         pourUnAutreVehicule:
           autresVehicules.has(product.id) && bestStatus(statuses) !== 'CONFIRMED',
