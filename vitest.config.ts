@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config'
 
 const TEST_DATABASE_URL =
   process.env.TEST_DATABASE_URL ??
-  `postgresql://${process.env.USER ?? 'postgres'}@localhost:5432/lumera_test?schema=public`
+  `postgresql://${process.env.USER ?? 'postgres'}@localhost:5432/fh_test?schema=public`
 
 export default defineConfig({
   test: {

@@ -124,7 +124,9 @@ describe('vehiclePackPath', () => {
 describe('typePath', () => {
   it('traduit les deux types que les parcours publics servent', () => {
     expect(typePath('CAR')).toBe('auto')
-    expect(typePath('MOTORCYCLE')).toBe('moto')
+    expect(typePath('VAN')).toBe('utilitaire')
+    expect(typePath('MOTORHOME')).toBe('camping-car')
+    expect(typePath('TRUCK')).toBe('poids-lourd')
   })
 
   it('n’invente pas de parcours pour « voiture et moto »', () => {

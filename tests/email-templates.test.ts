@@ -111,8 +111,8 @@ describe('promesses', () => {
     }
   })
 
-  it('rappelle la garantie produit à la confirmation de commande', () => {
-    expect(renderSample('commande.confirmation').text).toMatch(/garantis 5 ans/)
+  it('rappelle l’exclusion du sur mesure à la confirmation de commande', () => {
+    expect(renderSample('commande.confirmation').text).toMatch(/fabriqués sur mesure en sont exclus/)
   })
 
   it("n'affiche pas de bouton de suivi quand aucune URL n'est connue", () => {

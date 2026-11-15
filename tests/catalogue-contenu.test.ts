@@ -207,7 +207,8 @@ describe('parseIdentite', () => {
     expect(isDifficulte('EASY')).toBe(true)
     expect(isDifficulte('')).toBe(false)
     expect(isTypeVehicule('BOTH')).toBe(true)
-    expect(isTypeVehicule('TRUCK')).toBe(false)
+    expect(isTypeVehicule('TRUCK')).toBe(true)
+    expect(isTypeVehicule('BUS')).toBe(false)
   })
 })
 

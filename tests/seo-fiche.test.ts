@@ -121,7 +121,7 @@ describe('description de référencement', () => {
   it('remplace la mise en garde par le véhicule, la livraison et le retour', () => {
     const texte = descriptionSeo(IMPORT_HISTORIQUE, A1, CONDITIONS)
     expect(texte).toBe(
-      `Ampoules LED veilleuses (feux de position) Audi A1 (2010–2018), en pack prêt à monter sans modifier le câblage. Livraison offerte dès ${formatPrice(8000)}, retours sous 45 jours.`,
+      `Ampoules LED veilleuses (feux de position) Audi A1 (2010–2018) : Pour les veilleuses de votre Audi A1. Livraison offerte dès ${formatPrice(8000)}, retours sous 45 jours.`,
     )
     expect(texte).not.toMatch(/vérifier/)
     // Ce que Google affiche sans couper.
