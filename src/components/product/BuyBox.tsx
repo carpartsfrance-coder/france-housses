@@ -256,7 +256,8 @@ export function BuyBox({
     convient serait aussi faux que l'affirmer. Mais ce n'est plus l'action mise
     en avant : vérifier passe devant, acheter reste possible et le dit.
   */
-  const inconnu = Boolean(vehicleLabel) && selected.fitment.status === 'UNKNOWN'
+  // Sur mesure à la commande et universel : conviennent à tout véhicule du type.
+  const inconnu = Boolean(vehicleLabel) && selected.fitment.status === 'UNKNOWN' && scope === 'VEHICLE'
   const purchasable = isPurchasable(selected.availability) && !incompatible
   /*
     Rupture au sens strict : ni stock, ni vente à découvert. Une pièce

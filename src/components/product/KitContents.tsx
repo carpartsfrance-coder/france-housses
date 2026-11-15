@@ -44,9 +44,7 @@ export function KitContents({
   if (composants.length === 0) {
     return (
       <p className="max-w-[640px] text-[15px] leading-[1.7] text-[#5f6266]">
-        <strong className="text-slate-ink">{selected.name}</strong> — ce conditionnement ne
-        contient que le produit lui-même, sans accessoire de montage. Ce que votre véhicule exige
-        en plus est indiqué dans le bloc d&apos;achat.
+        Votre choix : <strong className="text-slate-ink">{selected.name}</strong>.
       </p>
     )
   }

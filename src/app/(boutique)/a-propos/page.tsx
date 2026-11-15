@@ -7,20 +7,18 @@ import { Article, PageLegale } from '@/components/legal/PageLegale'
 export const metadata: Metadata = {
   title: 'Qui sommes-nous',
   description:
-    'LEDVROOM compose des packs d’éclairage LED pour chaque véhicule, emplacement par emplacement. Une marque de CAR PARTS FRANCE, garantie 5 ans.',
+    'France Housses fabrique des housses de siège et des tapis sur mesure pour voiture, utilitaire, camping-car et poids lourd, depuis 1986. Société basée à Mont-de-Marsan.',
   alternates: { canonical: '/a-propos' },
 }
 
-const MISE_A_JOUR = '8 novembre 2026'
+const MISE_A_JOUR = '15 novembre 2026'
 
 /**
- * Qui sommes-nous.
+ * Qui sommes-nous — France Housses.
  *
- * La page que lit un client qui hésite à commander sur une boutique qu'il ne
- * connaît pas. **Rien n'y est affirmé qui ne soit vrai et vérifiable** : pas
- * d'ancienneté, pas de nombre de clients, pas d'avis inventés. L'identité de
- * la société vient de `identity.legal` (vérifiée au répertoire Sirene), les
- * engagements de la configuration (garantie, livraison, retours).
+ * Le texte reprend ce que l'ancien site disait de l'entreprise (depuis 1986,
+ * le camion magasin qui sillonne la France, plus de 500 références, fabrication
+ * française et européenne), sans rien ajouter qui ne soit établi.
  */
 export default async function Page() {
   const seuil = await getSeuilLivraisonOfferte()
@@ -31,27 +29,41 @@ export default async function Page() {
   return (
     <PageLegale
       titre="Qui sommes-nous"
-      chapeau={`${identity.name}, c’est l’éclairage auto pensé véhicule par véhicule.`}
+      chapeau={`${identity.name}, la housse de siège sur mesure depuis 1986.`}
       miseAJour={MISE_A_JOUR}
     >
-      <Article numero={1} id="idee" titre="Notre idée : le bon pack pour votre voiture">
+      <Article numero={1} id="histoire" titre="Depuis 1986, au contact des conducteurs">
         <p>
-          Changer une ampoule, ce n’est pas seulement trouver la bonne référence. Chaque voiture a ses
-          emplacements, son bloc optique et son équipement d’origine : la même génération peut
-          exister en halogène ou en xénon, avec ou sans feux de jour.
+          Depuis 1986, le camion magasin de France Housses sillonne la France de ville en ville. Ce
+          contact permanent avec nos clients nous a donné une connaissance précise de la housse de
+          voiture : ce qui tient, ce qui s’use, ce qui va vraiment sur un siège.
         </p>
         <p>
-          Nous composons donc nos packs <strong>pour chaque véhicule, emplacement par
-          emplacement</strong> : phares, veilleuses, plaque, recul, habitacle… Vous choisissez votre
-          voiture, vous recevez exactement ce qu’il faut, prêt à monter.
+          Plus de 500 références de housses, tapis et accessoires pour l’auto, le camping-car,
+          l’utilitaire et le poids lourd sont disponibles dans le camion — et toutes sont
+          désormais en ligne.
         </p>
       </Article>
 
-      <Article numero={2} id="engagements" titre="Nos engagements">
+      <Article numero={2} id="sur-mesure" titre="Le sur mesure, véhicule par véhicule">
+        <p>
+          Une housse sur mesure reprend la forme exacte des sièges d’origine, avec les découpes
+          prévues pour les appuie-tête, les accoudoirs et les ceintures. Vous choisissez votre
+          véhicule — type, marque, modèle, version — et le site ne vous montre que ce qui lui est
+          destiné, avec le croquis de vos sièges.
+        </p>
+        <p>
+          Votre véhicule n’est pas dans la liste ? Nos gammes fabriquées à la commande partent de la
+          description que vous nous donnez : marque, modèle, finition, nombre de places, accoudoirs,
+          appuie-tête. Fabrication française et européenne selon les gammes.
+        </p>
+      </Article>
+
+      <Article numero={3} id="engagements" titre="Nos engagements">
         <ul className="list-disc pl-5">
           {garantie ? (
             <li>
-              <strong>Garantie {garantie}</strong> sur toutes nos ampoules et LED.{' '}
+              <strong>Garantie {garantie}</strong> sur tous nos produits.{' '}
               <Link href="/garanties" className="underline underline-offset-2">
                 Ce qui est couvert
               </Link>
@@ -59,36 +71,41 @@ export default async function Page() {
           ) : null}
           {seuil ? (
             <li>
-              <strong>Livraison offerte dès {formatPrice(seuil)}</strong> en France.{' '}
-              <Link href="/livraison-retours" className="underline underline-offset-2">
-                Tarifs et délais
-              </Link>
+              <strong>Livraison offerte dès {formatPrice(seuil)}</strong> en France.
             </li>
           ) : null}
+          <li>
+            <strong>Expédition sous 24 h ouvrées</strong> pour les produits en stock, en France, en
+            Belgique et au Luxembourg.{' '}
+            <Link href="/livraison-retours" className="underline underline-offset-2">
+              Tarifs et délais
+            </Link>
+          </li>
           {retour ? (
             <li>
-              <strong>{retour} jours pour changer d’avis</strong>, sans avoir à vous justifier.
+              <strong>{retour} jours pour changer d’avis</strong> sur les produits standard (le sur
+              mesure en est exclu par la loi).
             </li>
           ) : null}
           <li>
-            <strong>Paiement sécurisé</strong> par carte ou Apple Pay, avec Mollie : votre numéro de
-            carte ne nous est jamais transmis.
+            <strong>Compatibles airbags latéraux</strong> : nos housses ont une couture qui s’ouvre
+            au déclenchement de l’airbag.
           </li>
           <li>
-            <strong>Une vraie personne pour vous répondre</strong>, avant l’achat pour choisir et
-            après pour le montage.
+            <strong>Une vraie personne pour vous répondre</strong>, du lundi au vendredi, de 9 h à
+            12 h et de 14 h à 17 h{contact.phone ? <> au {contact.phone}</> : null}.
           </li>
         </ul>
       </Article>
 
-      <Article numero={3} id="societe" titre="Qui est derrière LEDVROOM">
+      <Article numero={4} id="societe" titre="Qui est derrière France Housses">
         <p>
-          {identity.name} est une marque de <strong>{legal.companyName ?? identity.name}</strong>,
-          société française spécialisée dans les pièces automobiles
+          <strong>{legal.companyName ?? identity.name}</strong>, société française
           {legal.address ? <>, dont le siège est au {legal.address}</> : null}.
+          {identity.showroom ? <> Notre showroom vous accueille au {identity.showroom}.</> : null}
         </p>
         <p className="text-[12px] text-muted-strong">
-          {[legal.legalForm, legal.siret ? `SIRET ${legal.siret}` : null, legal.rcs, legal.vatNumber ? `TVA ${legal.vatNumber}` : null]
+          {[legal.legalForm, legal.capital ? `capital ${legal.capital}` : null, legal.siret ? `SIRET ${legal.siret}` : null, legal.rcs, legal.vatNumber ? `TVA ${legal.vatNumber}` : null]
             .filter(Boolean)
             .join(' · ')}
           . Toutes les mentions sur la page{' '}
@@ -97,11 +114,20 @@ export default async function Page() {
           </Link>
           .
         </p>
+        {identity.avis ? (
+          <p>
+            Nos clients nous notent{' '}
+            <a href={identity.avis.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+              {identity.avis.note} sur la {identity.avis.label}
+            </a>
+            .
+          </p>
+        ) : null}
       </Article>
 
-      <Article numero={4} id="contact" titre="Nous écrire">
+      <Article numero={5} id="contact" titre="Nous joindre">
         <p>
-          Une question sur un pack, sur la compatibilité avec votre voiture ou sur le montage ?
+          Une question sur une housse, sur la configuration de vos sièges ou sur une commande ?
           Écrivez-nous depuis le{' '}
           <Link href={contact.contactPath} className="underline underline-offset-2">
             formulaire de contact
@@ -115,7 +141,7 @@ export default async function Page() {
               </a>
             </>
           ) : null}
-          .
+          {contact.phone ? <>, ou appelez-nous au {contact.phone}</> : null}.
         </p>
       </Article>
     </PageLegale>

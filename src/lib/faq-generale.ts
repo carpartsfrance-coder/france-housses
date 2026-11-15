@@ -1,7 +1,7 @@
 import 'server-only'
 import { commercialTerms, dureeGarantie, formatPrice } from './identity'
 import { getZonesDeLivraison } from './shipping'
-import { leVehicule, typeHorsAmpoules } from './types-produit'
+import { leVehicule } from './types-produit'
 
 /**
  * Questions fréquentes par défaut, tant que le back-office n'en publie pas.
@@ -26,19 +26,24 @@ export async function faqGeneraleParDefaut(): Promise<QuestionReponse[]> {
 
   const questions: Array<QuestionReponse | null> = [
     {
-      question: 'Comment être sûr que le pack convient à ma voiture ?',
+      question: 'Comment être sûr que la housse convient à mon véhicule ?',
       answer:
-        'Choisissez votre véhicule (marque, modèle, année) : le site ne vous montre que les packs composés pour lui, emplacement par emplacement, et chaque fiche indique le véhicule pour lequel le pack est fait. En cas de doute sur votre version ou son équipement d’origine, écrivez-nous avec le modèle exact : nous vérifions avant l’envoi.',
+        'Choisissez votre véhicule (type, marque, modèle, version) : le site ne vous montre que les housses prévues pour lui. Vérifiez aussi le nombre de places et comparez vos sièges au croquis de la fiche. En cas de doute, appelez-nous au 05 58 93 95 39 ou envoyez-nous une photo de vos sièges : nous vérifions avant la fabrication.',
     },
     {
-      question: 'Faut-il modifier le câblage ?',
+      question: 'Les housses sont-elles compatibles avec les airbags latéraux ?',
       answer:
-        'Non, sur les véhicules compatibles : les ampoules et les LED se montent à la place de celles d’origine. Quand un adaptateur est nécessaire, la fiche du produit le signale.',
+        'Oui. Nos housses ont une couture qui s’ouvre au déclenchement de l’airbag latéral, sans le retarder. Elles sont aussi compatibles avec les sièges chauffants.',
+    },
+    {
+      question: 'Quel est le délai de fabrication ?',
+      answer:
+        'Les produits en stock partent sous 24 h ouvrées. Une housse ou un tapis sur mesure est fabriqué à la commande : le délai (15 à 35 jours ouvrés selon la gamme) est indiqué sur la fiche et rappelé à la commande.',
     },
     garantie
       ? {
           question: 'Quelle est la garantie ?',
-          answer: `Tous nos produits sont garantis ${garantie} à compter de la livraison. Si une ampoule ou une LED tombe en panne, nous la remplaçons à nos frais. Le détail est sur la page Garanties.`,
+          answer: `Tous nos produits sont garantis ${garantie} à compter de la livraison. Le détail est sur la page Garanties.`,
         }
       : null,
     offre
@@ -57,20 +62,18 @@ export async function faqGeneraleParDefaut(): Promise<QuestionReponse[]> {
     retour
       ? {
           question: 'Puis-je retourner un produit ?',
-          answer: commercialTerms.satisfaitDays
-            ? `Oui : satisfait ou remboursé pendant ${commercialTerms.satisfaitDays} jours après réception. Les ${retour} premiers jours, c’est sans condition (droit de rétractation). Ensuite, jusqu’au ${commercialTerms.satisfaitDays}e jour, l’article doit être neuf et complet, dans son emballage d’origine. Prévenez-nous avec votre numéro de commande, puis renvoyez l’article ; nous vous remboursons par le même moyen de paiement.`
-            : `Oui : vous avez ${retour} jours à compter de la réception pour changer d’avis, sans avoir à vous justifier. Prévenez-nous avec votre numéro de commande, puis renvoyez l’article ; nous vous remboursons par le même moyen de paiement.`,
+          answer: `Les produits standard (universels, accessoires) : oui, vous avez ${retour} jours à compter de la réception pour changer d’avis, frais de retour à votre charge. Les housses et tapis fabriqués sur mesure ne sont pas concernés par le droit de rétractation (article L221-28 du code de la consommation) : vérifiez bien votre véhicule avant de commander.`,
         }
       : null,
     {
       question: 'Le paiement est-il sécurisé ?',
       answer:
-        'Oui. Vous payez par carte bancaire (CB, Visa, Mastercard) ou Apple Pay sur la page sécurisée de Mollie, établissement de paiement agréé. Votre numéro de carte ne nous est jamais transmis.',
+        'Oui. Vous payez par carte bancaire sur une page de paiement sécurisée : votre numéro de carte ne nous est jamais transmis.',
     },
     {
-      question: 'Un message d’erreur s’affiche au tableau de bord après le montage : que faire ?',
+      question: 'Comment entretenir mes housses ?',
       answer:
-        'Certains véhicules surveillent la consommation des ampoules. Écrivez-nous avec le modèle de votre voiture : nous vous indiquons la solution pour elle.',
+        'Les housses en tissu se lavent en machine à 30 °C (programme délicat, essorage doux) ou à la main. Le simili cuir se nettoie d’un coup d’éponge humide ou d’un chiffon doux imbibé d’eau savonneuse.',
     },
   ]
 
@@ -94,27 +97,15 @@ export async function faqFicheParDefaut(
   moto = false,
 ): Promise<QuestionReponse[]> {
   const generales = await faqGeneraleParDefaut()
-  // Feux additionnels, centrale… : la réponse sur le câblage est la leur.
-  const type = typeHorsAmpoules(nomDuProduit)
-  const sansPaiement = generales
-    .filter(
-      (question) => !question.question.startsWith('Le paiement') && !question.question.startsWith('Comment être sûr'),
-    )
-    .filter((question) => !(type && question.question.startsWith('Un message d’erreur')))
-    // Un accessoire sans branchement (outils, gants) n'a pas de question de câblage.
-    .filter((question) => !(type && !type.cablage && question.question === 'Faut-il modifier le câblage ?'))
-    .map((question) =>
-      type && question.question === 'Faut-il modifier le câblage ?'
-        ? { question: 'Comment se branche ce produit ?', answer: type.cablage }
-        : question,
-    )
+  const autres = generales.filter(
+    (question) => !question.question.startsWith('Le paiement') && !question.question.startsWith('Comment être sûr'),
+  )
   const compatibilite: QuestionReponse = concuPour
     ? {
-        question: type ? 'Ce produit convient-il à mon véhicule ?' : `Ce pack convient-il à mon véhicule ?`,
-        answer: type
-          ? `Il est prévu pour ${leVehicule(concuPour, moto)}. En cas de doute sur votre version, écrivez-nous avec le modèle exact avant de commander : nous vérifions.`
-          : `Il est composé pour ${leVehicule(concuPour, moto)} : les ampoules et les LED correspondent aux emplacements d’origine de ce véhicule. Si le vôtre a reçu des phares différents de ceux montés en usine (xénon, LED d’origine), écrivez-nous avec le modèle exact avant de commander : nous vérifions.`,
+        question: 'Cette housse convient-elle à mon véhicule ?',
+        answer: `Elle est prévue pour ${leVehicule(concuPour, moto)}. Vérifiez le nombre de places et comparez vos sièges au croquis de la fiche. En cas de doute sur votre version, appelez-nous ou écrivez-nous avant de commander : nous vérifions.`,
       }
     : generales.find((question) => question.question.startsWith('Comment être sûr')) ?? generales[0]
-  return [compatibilite, ...sansPaiement]
+  void nomDuProduit
+  return [compatibilite, ...autres]
 }

@@ -67,21 +67,23 @@ export default async function Page() {
 
       <Article numero={2} id="produits" titre="Produits et compatibilité">
         <p>
-          Les produits sont des équipements d'éclairage pour véhicules. Les photographies et les
-          descriptions visent la plus grande exactitude possible ; de légères différences d'aspect
-          sans incidence sur les caractéristiques essentielles ne constituent pas un défaut de
-          conformité.
+          Les produits sont des housses de siège, tapis de sol, bâches de protection et
+          accessoires pour véhicules. Certaines housses et certains tapis sont fabriqués à la
+          commande, aux mesures du véhicule ; les autres produits sont livrés depuis le stock.
         </p>
         <p>
-          <strong>La compatibilité de montage n'est pas l'homologation routière.</strong> Le site
-          indique si une pièce se monte sur un véhicule donné ; cela ne préjuge pas de sa conformité
-          à la réglementation applicable à la circulation. Le remplacement d'une source halogène par
-          une source à LED, en particulier, n'est pas homologué en France sur un véhicule réceptionné
-          pour l'halogène. Il appartient au client de s'assurer de la conformité de son véhicule.
+          <strong>Les photographies illustrent la matière et les coloris</strong> : elles ne
+          représentent pas le véhicule du client. Pour les housses sur mesure, un croquis des sièges
+          et la description de la configuration (nombre de places, banquette, accoudoirs,
+          appuie-tête) figurent sur la fiche. Il appartient au client de vérifier que cette
+          configuration correspond à son véhicule avant de commander ; en cas de doute, le service
+          client vérifie avant la fabrication.
         </p>
         <p>
-          Lorsqu'une compatibilité n'a pas été vérifiée, le site l'indique et propose une
-          vérification avant achat. Une absence d'information ne vaut jamais confirmation.
+          Pour les gammes fabriquées à la commande, la housse est réalisée d'après les informations
+          renseignées par le client (marque, modèle, finition, date de mise en circulation,
+          configuration des sièges). Ces informations l'engagent : une housse fabriquée d'après une
+          description erronée ne constitue pas un défaut de conformité.
         </p>
       </Article>
 
@@ -160,7 +162,16 @@ export default async function Page() {
 
       <Article numero={7} id="retractation" titre="Droit de rétractation">
         <p>
-          Conformément à l'article L221-18 du code de la consommation, le client dispose de{' '}
+          <strong>
+            Le droit de rétractation ne s'applique pas aux housses et tapis fabriqués sur mesure
+          </strong>
+          , confectionnés selon les spécifications du client ou nettement personnalisés (article
+          L221-28, 3° du code de la consommation). Ces produits sont signalés comme tels sur leur
+          fiche et au moment de la commande.
+        </p>
+        <p>
+          Pour les autres produits (gammes standard, universelles, accessoires), conformément à
+          l'article L221-18 du code de la consommation, le client dispose de{' '}
           <strong>{retractation} jours</strong> à compter de la réception pour se rétracter, sans
           avoir à motiver sa décision ni à supporter de pénalité.
         </p>

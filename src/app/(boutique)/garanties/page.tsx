@@ -6,7 +6,7 @@ import { Article, PageLegale } from '@/components/legal/PageLegale'
 export const metadata: Metadata = {
   title: 'Garanties',
   description:
-    'Garantie LEDVROOM de 5 ans sur toutes nos ampoules et LED, en plus des garanties légales : ce qui est couvert et comment la faire jouer.',
+    'Garanties légales de conformité et des vices cachés sur nos housses, tapis et bâches : ce qui est couvert et comment les faire jouer.',
   alternates: { canonical: '/garanties' },
 }
 
@@ -34,18 +34,16 @@ export default function Page() {
       titre="Garanties"
       chapeau={
         duree
-          ? `Tous nos produits sont garantis ${duree}. Si une ampoule ou une LED tombe en panne, nous la remplaçons.`
-          : 'Ce qui est couvert si un pack est défectueux ou ne correspond pas à ce qui était annoncé.'
+          ? `Tous nos produits sont garantis ${duree}.`
+          : 'Ce qui est couvert si une housse, un tapis ou une bâche est défectueux ou ne correspond pas à ce qui était annoncé.'
       }
       miseAJour={MISE_A_JOUR}
     >
       {mois ? (
         <Article numero={1} id="garantie-commerciale" titre={`Garantie ${identity.name} ${duree}`}>
           <p>
-            <strong>Tous les produits vendus sur notre site</strong> — ampoules, LED, modules et kits —
-            sont garantis <strong>{duree} à compter de la livraison</strong> contre les pannes et les
-            défauts de fonctionnement : une LED qui ne s’allume plus, qui clignote ou qui scintille
-            anormalement, une ampoule qui grille, un module qui cesse de fonctionner.
+            <strong>Tous les produits vendus sur notre site</strong> sont garantis{' '}
+            <strong>{duree} à compter de la livraison</strong> contre les défauts de fabrication.
           </p>
           <p>
             <strong>Ce que nous faisons :</strong> nous remplaçons le produit défectueux par un produit
@@ -80,7 +78,7 @@ export default function Page() {
 
       <Article numero={mois ? 2 : 1} id="conformite" titre="Garantie légale de conformité : 2 ans">
         <p>
-          Si un pack présente un défaut ou ne correspond pas à sa description, vous pouvez demander
+          Si un produit présente un défaut ou ne correspond pas à sa description, vous pouvez demander
           sa réparation ou son remplacement pendant <strong>deux ans à compter de la livraison</strong>
           , sans avoir à prouver que le défaut existait à la livraison (articles L217-3 et suivants
           du code de la consommation).

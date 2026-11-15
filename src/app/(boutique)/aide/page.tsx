@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/Surface'
 export const metadata: Metadata = {
   title: 'Aide & contact',
   description:
-    "Suivi de commande, questions fréquentes et contact : l'aide pour choisir votre pack et suivre votre commande.",
+    "Suivi de commande, questions fréquentes et contact : l'aide pour choisir votre housse et suivre votre commande.",
   alternates: { canonical: '/aide' },
 }
 

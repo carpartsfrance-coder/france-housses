@@ -8,7 +8,7 @@ import { Article, PageLegale } from '@/components/legal/PageLegale'
 export const metadata: Metadata = {
   title: 'Livraison et retours',
   description:
-    'Tarifs et délais de livraison en France, livraison offerte, suivi de colis, satisfait ou remboursé 45 jours.',
+    'Tarifs et délais de livraison en France, Belgique et Luxembourg, délais de fabrication du sur mesure, suivi de colis, retours.',
   alternates: { canonical: '/livraison-retours' },
 }
 
@@ -104,6 +104,18 @@ export default async function Page() {
           Le prix exact de la livraison est toujours affiché dans le panier, avant le paiement. Les
           délais sont des estimations en jours ouvrés, à compter de l’expédition.
         </p>
+        <p>
+          <strong>Expédition :</strong> les produits en stock partent le jour même ou le lendemain
+          (commande passée après 13 h), en Colissimo suivi. Les housses et tapis{' '}
+          <strong>fabriqués sur mesure</strong> partent à la fin de leur délai de fabrication,
+          indiqué sur chaque fiche (15 à 35 jours ouvrés selon la gamme) et rappelé à la commande.
+          Une commande peut être livrée en plusieurs colis ; les frais supplémentaires sont pour
+          nous.
+        </p>
+        <p>
+          Nous livrons la France métropolitaine (Corse comprise), la Belgique et le Luxembourg. Pour
+          une autre destination, contactez-nous avant de commander.
+        </p>
       </Article>
 
       <Article numero={2} id="suivi" titre="Suivre son colis">
@@ -144,10 +156,23 @@ export default async function Page() {
             </ul>
           </>
         ) : (
-          <p>
-            Vous avez <strong>{retour} jours à compter de la réception</strong> pour changer d’avis,
-            sans avoir à vous justifier.
-          </p>
+          <>
+            <p>
+              <strong>Produits standard</strong> (universels, accessoires) : vous avez{' '}
+              <strong>{retour} jours à compter de la réception</strong> pour changer d’avis, sans
+              avoir à vous justifier.
+            </p>
+            <p>
+              <strong>Housses et tapis sur mesure</strong> : fabriqués aux mesures de votre véhicule,
+              ils ne bénéficient pas du droit de rétractation (article L221-28 du code de la
+              consommation). En cas de défaut ou d’erreur de notre part, les garanties légales
+              s’appliquent :{' '}
+              <Link href="/garanties" className="underline underline-offset-2">
+                voir les garanties
+              </Link>
+              .
+            </p>
+          </>
         )}
         <ol className="list-decimal pl-5">
           <li>

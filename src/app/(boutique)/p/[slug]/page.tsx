@@ -461,8 +461,9 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
               Masqué enfin quand la compatibilité est confirmée : l'encadré
               vert « Compatible avec votre … · Changer » du bloc d'achat le
               dit déjà, et la voiture était nommée trois fois en haut de page. */}
-          {(vehicle && !product.variants.some((variant) => variant.fitment.status === 'CONFIRMED')) ||
-          (!vehicle && !concuPour) ? (
+          {product.scope === 'VEHICLE' &&
+          ((vehicle && !product.variants.some((variant) => variant.fitment.status === 'CONFIRMED')) ||
+            (!vehicle && !concuPour)) ? (
           <VehicleBar
             vehicle={vehicle}
             concuPour={concuPour}
@@ -804,7 +805,7 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
                 </h2>
               </div>
               <p className="mt-2 text-[14px] text-[#5f6266] fiche:mt-0 fiche:text-right">
-                Ce que réunit le conditionnement retenu dans le bloc d&apos;achat.
+                Matière, délai et références de cette housse.
               </p>
             </div>
 
@@ -833,7 +834,20 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
                       className="flex justify-between gap-6 border-b border-line py-3.5 text-[15px]"
                     >
                       <dt className="text-[#5f6266]">{spec.label}</dt>
-                      <dd className="text-right font-semibold">{spec.value}</dd>
+                      <dd className="text-right font-semibold">
+                        {/^https?:\/\//.test(spec.value) ? (
+                          <a
+                            href={spec.value}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline underline-offset-4 hover:text-brand"
+                          >
+                            {/youtube|youtu\.be/.test(spec.value) ? 'Voir la vidéo' : 'Ouvrir'}
+                          </a>
+                        ) : (
+                          spec.value
+                        )}
+                      </dd>
                     </div>
                   ))}
                 </dl>
@@ -1049,8 +1063,8 @@ function CarteConseil({ className, bandeau = false }: { className?: string; band
         {/* « vos phares » s'affichait aussi sur les packs plaque, recul ou habitacle. */}
         <strong className="text-[18px]">Un doute avant de commander ?</strong>
         <p className="text-[14px] leading-[1.6] text-[#c9ccd1]">
-          Décrivez-nous votre véhicule : un conseiller vous dit quel pack prendre, et vous aide
-          jusqu’au montage.
+          Décrivez-nous votre véhicule ou envoyez une photo de vos sièges : un conseiller vous dit
+          quelle housse prendre. Du lundi au vendredi, 9h–12h et 14h–17h.
         </p>
       </div>
       <Link
