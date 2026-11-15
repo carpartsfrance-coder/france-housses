@@ -66,8 +66,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `Éclairage ${read.data.makeName} ${read.data.model.name}`,
-    description: `Les générations de ${read.data.makeName} ${read.data.model.name} et leurs éclairages documentés.`,
+    title: `Housses et tapis ${read.data.makeName} ${read.data.model.name}`,
+    description: `Les générations de ${read.data.makeName} ${read.data.model.name} et leurs housses et tapis sur mesure.`,
     alternates: { canonical: `/vehicules/${type}/${marque}/${modele}` },
   }
 }
@@ -100,7 +100,7 @@ export default async function PacksModelePage({ params }: PageProps) {
       />
 
       <h1 className="text-[25px] leading-[1.2] font-bold tracking-[-0.9px] fiche:text-[29px] fiche:tracking-[-1px]">
-        Éclairage {makeName} {model.name}
+        Housses et tapis {makeName} {model.name}
       </h1>
       <p className="mt-2 max-w-[580px] text-[11px] leading-[1.8] text-[#7a7a7a]">
         Choisissez la période de fabrication qui correspond à votre véhicule. Un restylage change

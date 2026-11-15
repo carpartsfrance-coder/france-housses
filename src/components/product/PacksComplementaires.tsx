@@ -111,7 +111,7 @@ export function PacksComplementaires({
               id="titre-completer"
               className="text-[26px] leading-[1.15] font-bold tracking-[-0.6px] fiche:text-[32px]"
             >
-              Complétez l’éclairage de votre {vehicule}
+              Complétez l’équipement de votre {vehicule}
             </h2>
           </div>
           <p className="mt-2 text-[14px] text-[#5f6266] fiche:mt-0 fiche:max-w-[420px] fiche:text-right">

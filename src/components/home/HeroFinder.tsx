@@ -222,7 +222,7 @@ export function HeroFinder({ hero, finder, vehicle = null }: HeroFinderProps) {
                 className="mt-4 h-[48px] min-h-[48px] w-full rounded-[9px] text-[15px] hover:bg-brand! hover:ring-2 hover:ring-brand/25"
                 iconRight={<IconArrowRight className="size-[18px]" />}
               >
-                Voir mes éclairages
+                Voir mes produits
               </ButtonLink>
 
               {/*

@@ -67,7 +67,7 @@ export function OptionsDuVehicule({ vehicule, packs }: { vehicule: string; packs
   return (
     <section aria-labelledby="titre-options-vehicule" className="order-5 mt-8 scroll-mt-32">
       <h2 id="titre-options-vehicule" className="text-[20px] leading-tight font-extrabold tracking-[-0.02em]">
-        Complétez l’éclairage de votre {vehicule}
+        Complétez l’équipement de votre {vehicule}
       </h2>
       <p className="mt-1 text-[13px] text-muted-strong">Vérifiés pour ce véhicule, à ajouter en un clic.</p>
       {/*
@@ -133,7 +133,7 @@ export function OptionsDuVehicule({ vehicule, packs }: { vehicule: string; packs
       </ul>
       {packs.length > 1 ? (
         <p className="mt-1 text-[12px] text-muted-strong fiche:hidden">
-          Faites glisser pour voir les {packs.length} éclairages →
+          Faites glisser pour voir les {packs.length} produits →
         </p>
       ) : null}
       {packs.length > 4 && !tout ? (
@@ -142,14 +142,14 @@ export function OptionsDuVehicule({ vehicule, packs }: { vehicule: string; packs
           onClick={() => setTout(true)}
           className="mt-3 hidden w-full fiche:block rounded-lg border border-line py-2.5 text-[13px] font-bold hover:border-line-strong"
         >
-          Voir les {packs.length - 4} autres éclairages pour ce véhicule
+          Voir les {packs.length - 4} autres produits pour ce véhicule
         </button>
       ) : null}
       {essentiels.length > 1 ? (
         <div className="mt-4 rounded-xl bg-[#111214] p-4 text-white">
           <p className="text-[14px] leading-snug">
-            <strong>Tout l’éclairage de votre {vehicule}</strong> en une fois :{' '}
-            un pack par emplacement, {essentiels.length} produits,{' '}
+            <strong>Tout l’équipement de votre {vehicule}</strong> en une fois :{' '}
+            housses et tapis, {essentiels.length} produits,{' '}
             {formatPrice(essentiels.reduce((t, p) => t + p.prixCents, 0))}
           </p>
           <button

@@ -75,7 +75,7 @@ export function VehicleBand({ content, vehicle = null }: VehicleBandProps) {
               id={TITLE_ID}
               className="m-0 text-[17px] leading-[1.3] font-bold tracking-[-0.4px] sm:text-[18px]"
             >
-              {vehicle ? `Vos éclairages pour la ${vehicle.label}` : content.title}
+              {vehicle ? `Vos housses et tapis pour ${vehicle.label}` : content.title}
             </h2>
 
             {/*
@@ -105,7 +105,7 @@ export function VehicleBand({ content, vehicle = null }: VehicleBandProps) {
                   href="/vehicule/resultats"
                   className="inline-flex min-h-[48px] items-center justify-center gap-3 rounded-[9px] bg-brand px-6 text-[14px] font-bold text-white transition-colors hover:bg-brand-dark"
                 >
-                  Voir les éclairages compatibles
+                  Voir les produits compatibles
                   <IconArrowRight className="size-[18px] shrink-0" />
                 </Link>
 

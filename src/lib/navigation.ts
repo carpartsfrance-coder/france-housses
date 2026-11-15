@@ -41,12 +41,10 @@ export const topNav: Array<NavItem & { icon: 'return' | 'help' | 'phone' }> = [
  * donc pas désigner une page absente.
  */
 export const mainNav: NavItem[] = [
-  { label: 'Packs Auto & Utilitaires', href: '/vehicules/auto', highlight: true },
-  { label: 'Packs Moto & Scooter', href: '/vehicules/moto' },
-  { label: 'Ampoules & Kits LED', href: '/c/phares-led' },
-  { label: 'LED au détail', href: '/c/interieur' },
-  { label: 'Xénon & Halogène', href: '/c/xenon' },
-  { label: 'Accessoires', href: '/c/accessoires' },
+  { label: 'Housses auto', href: '/vehicules/auto', highlight: true },
+  { label: 'Utilitaires', href: '/vehicules/utilitaire' },
+  { label: 'Camping-cars', href: '/vehicules/camping-car' },
+  { label: 'Poids lourds', href: '/vehicules/poids-lourd' },
   { label: 'Toutes les catégories', href: '/c' },
 ]
 export const footerNav: Array<{ title: string; items: NavItem[] }> = [
@@ -61,12 +59,10 @@ export const footerNav: Array<{ title: string; items: NavItem[] }> = [
     */
     title: 'Acheter',
     items: [
-      { label: 'Packs Auto & Utilitaires', href: '/vehicules/auto' },
-      { label: 'Packs Moto & Scooter', href: '/vehicules/moto' },
-      { label: 'Ampoules & Kits LED', href: '/c/phares-led' },
-      { label: 'LED au détail', href: '/c/interieur' },
-      { label: 'Xénon & Halogène', href: '/c/xenon' },
-      { label: 'Accessoires', href: '/c/accessoires' },
+      { label: 'Housses et tapis auto', href: '/vehicules/auto' },
+      { label: 'Utilitaires', href: '/vehicules/utilitaire' },
+      { label: 'Camping-cars', href: '/vehicules/camping-car' },
+      { label: 'Poids lourds', href: '/vehicules/poids-lourd' },
       { label: 'Toutes les catégories', href: '/c' },
     ],
   },

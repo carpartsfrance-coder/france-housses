@@ -10,7 +10,7 @@ import { getSelectedVehicle } from '@/lib/session'
 export const metadata: Metadata = {
   title: 'Mon véhicule',
   description:
-    "Marque, modèle, année, puis équipement lumineux d'origine : c'est le véhicule qui décide de l'éclairage qui lui correspond, pas le culot de l'ampoule.",
+    "Type, marque, modèle et version : c'est le véhicule qui décide de la housse et du tapis qui lui vont.",
   alternates: { canonical: '/vehicule' },
 }
 
@@ -31,18 +31,18 @@ type Step = {
 
 const steps: Step[] = [
   {
-    title: 'Marque, modèle, année',
-    text: "Ces trois réponses identifient la génération exacte du véhicule. C'est elle qui porte les blocs optiques, pas le modèle pris au sens large.",
+    title: 'Marque, modèle, version',
+    text: "Ces trois réponses identifient la génération exacte du véhicule. C'est elle qui porte la forme des sièges, pas le modèle pris au sens large.",
     Icon: IconCar,
   },
   {
-    title: "Équipement lumineux d'origine",
-    text: "Halogène, xénon d'origine ou LED d'origine : quand une génération a été vendue avec plusieurs équipements, le choix vous revient. Nous ne le devinons pas à votre place.",
+    title: 'La configuration des sièges',
+    text: "Nombre de places, banquette entière ou fractionnée, accoudoirs, airbags latéraux : la fiche produit montre le croquis des sièges prévus, à comparer avec les vôtres.",
     Icon: IconGear,
   },
   {
-    title: 'Les produits, emplacement par emplacement',
-    text: "Feux de croisement, route, antibrouillards, intérieur, plaque, recul, clignotants. Chaque produit affiche son statut : compatibilité confirmée, informations insuffisantes, ou incompatible.",
+    title: 'Housses, tapis, bâches',
+    text: "Les gammes faites pour votre véhicule, puis nos gammes fabriquées à la commande d'après vos réponses, et les produits universels.",
     Icon: IconWrench,
   },
 ]
@@ -58,15 +58,13 @@ export default async function Page() {
         <header className="mt-6 max-w-3xl">
           <h1 className="text-3xl font-extrabold sm:text-4xl">Partons de votre véhicule.</h1>
           <p className="mt-4 text-lg text-muted-strong">
-            Un éclairage ne se choisit pas au culot de l&apos;ampoule. Le bloc optique, son
-            réflecteur et l&apos;équipement monté en sortie d&apos;usine décident de ce qui peut y
-            être installé.
+            Une housse sur mesure se choisit d&apos;après les sièges de votre véhicule : leur forme,
+            le nombre de places, les accoudoirs et les appuie-tête.
           </p>
           <p className="mt-3 text-base text-muted-strong">
-            Deux voitures du même modèle et de la même année peuvent donc demander des pièces
-            différentes. C&apos;est pour cette raison que nous partons du véhicule : tant qu&apos;il
-            n&apos;est pas connu, nous ne pouvons rien affirmer sur la compatibilité d&apos;un
-            produit.
+            Deux versions d&apos;un même modèle n&apos;ont pas toujours les mêmes sièges. C&apos;est
+            pour cette raison que nous partons du véhicule : choisissez-le, nous vous montrons ce
+            qui lui est destiné.
           </p>
         </header>
 
@@ -85,7 +83,7 @@ export default async function Page() {
                 href="/vehicule/resultats"
                 iconRight={<IconArrowRight className="size-5" />}
               >
-                Voir mes éclairages
+                Voir mes produits
               </ButtonLink>
             </div>
             <p className="mt-3">

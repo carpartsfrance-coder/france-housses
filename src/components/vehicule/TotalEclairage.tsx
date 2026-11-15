@@ -66,7 +66,7 @@ export function TotalEclairage({
         </span>
         <div className="min-w-0">
           <h3 id="total-eclairage" className="text-[16px] leading-[1.2] font-extrabold">
-            Tout l&apos;éclairage de votre {titre}
+            Tout l&apos;équipement de votre {titre}
           </h3>
           <p className="mt-1 text-[12px] text-muted-strong">
             {`Un pack par emplacement, le plus simple à monter · ${emplacements} emplacement${emplacements > 1 ? 's' : ''}`}

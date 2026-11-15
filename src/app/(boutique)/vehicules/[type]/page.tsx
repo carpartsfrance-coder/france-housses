@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: libelle.long,
-    description: `Les éclairages documentés pour votre véhicule, marque par marque.`,
+    description: `Housses de siège et tapis de sol sur mesure pour votre véhicule, marque par marque.`,
     alternates: { canonical: `/vehicules/${type}` },
   }
 }
@@ -56,8 +56,8 @@ export default async function PacksTypePage({ params }: PageProps) {
         {libelle.long}
       </h1>
       <p className="mt-2 max-w-[580px] text-[11px] leading-[1.8] text-[#7a7a7a]">
-        Choisissez votre marque, puis votre modèle et sa période de fabrication. Les éclairages
-        affichés sont ceux documentés pour ce véhicule.
+        Choisissez votre marque, puis votre modèle et sa version. Vous verrez les housses et tapis
+        faits pour ce véhicule, et nos gammes fabriquées à la commande.
       </p>
 
       {makes === null ? (
@@ -82,7 +82,7 @@ export default async function PacksTypePage({ params }: PageProps) {
         <EmptyState
           className="mt-6"
           title={`Aucune marque ${libelle.court.toLowerCase()} n'est encore référencée.`}
-          description="Les véhicules sont ajoutés au fur et à mesure que leurs compatibilités sont relevées. En attendant, vous pouvez partir du culot de votre ampoule ou parcourir le catalogue."
+          description="Les véhicules sont ajoutés au fur et à mesure que leurs compatibilités sont relevées. En attendant, parcourez le catalogue ou contactez-nous."
           action={{ label: 'Voir le catalogue', href: '/c' }}
         />
       ) : (

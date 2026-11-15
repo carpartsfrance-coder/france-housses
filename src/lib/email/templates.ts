@@ -358,9 +358,9 @@ export const TEMPLATES: Record<TemplateKey, TemplateDefinition> = {
     footerNote: () =>
       "Vous recevez ce message parce que vous aviez demandé à être prévenu du retour de cette référence. C'est le seul message envoyé pour cette demande.",
     sample: {
-      productName: 'Kit LED H7',
+      productName: 'Housse de siège sur mesure Privilège',
       variantName: 'Le kit complet',
-      productUrl: `${siteConfig.url}/p/kit-led-h7-blanc-pur-6000k`,
+      productUrl: `${siteConfig.url}/p/housse-de-siege-sur-mesure`,
     },
   },
 

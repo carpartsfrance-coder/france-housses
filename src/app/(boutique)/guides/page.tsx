@@ -7,11 +7,11 @@ import { Article, PageLegale } from '@/components/legal/PageLegale'
 export const metadata: Metadata = {
   title: 'Conseils & montage',
   description:
-    'Comment monter vos ampoules et LED : préparation, gestes à connaître, accès par emplacement (plaque, veilleuses, feux de jour, phares, antibrouillards, recul) et vérifications.',
+    'Comment poser vos housses de siège et vos tapis de sol : préparation, sièges avant, banquette arrière, airbags latéraux, tapis et entretien.',
   alternates: { canonical: '/guides' },
 }
 
-const MISE_A_JOUR = '7 novembre 2026'
+const MISE_A_JOUR = '15 novembre 2026'
 
 /**
  * Conseils de montage.
@@ -39,97 +39,92 @@ export default async function Page() {
   return (
     <PageLegale
       titre="Conseils & montage"
-      chapeau="Les gestes qui valent pour tous les véhicules, emplacement par emplacement. Pour le détail de votre voiture, notre équipe vous répond."
+      chapeau="Les gestes qui valent pour tous les véhicules. Une notice et, pour beaucoup de gammes, une vidéo de montage accompagnent chaque housse ; pour le reste, notre équipe vous répond."
       miseAJour={MISE_A_JOUR}
     >
       <Article numero={1} id="avant" titre="Avant de commencer">
         <ul className="list-disc pl-5">
           <li>
-            Vérifiez que le pack correspond à votre véhicule : choisissez votre voiture avec le
-            sélecteur, la fiche produit vous dit si c&apos;est compatible.
-          </li>
-          <li>Coupez le contact et éteignez les feux. Retirez la clé si possible.</li>
-          <li>
-            Laissez refroidir l&apos;ampoule d&apos;origine si elle vient d&apos;éclairer : une
-            ampoule halogène devient très chaude.
+            Vérifiez que la housse correspond à vos sièges : nombre de places, banquette entière ou
+            fractionnée, accoudoirs, appuie-tête. Le croquis de la fiche produit vous aide à
+            comparer.
           </li>
           <li>
-            Prévoyez des gants propres, une lampe, et un outil de démontage en plastique pour ne
-            pas rayer la carrosserie ni casser une agrafe.
-          </li>
-        </ul>
-      </Article>
-
-      <Article numero={2} id="gestes" titre="Les gestes à connaître">
-        <ul className="list-disc pl-5">
-          <li>
-            <strong>Ne touchez pas le verre</strong> d&apos;une ampoule halogène ou effet xénon :
-            la trace de doigt crée un point chaud qui raccourcit sa durée de vie. Tenez-la par son
-            culot.
+            Sortez les housses de leur emballage quelques heures avant la pose, de préférence dans
+            une pièce tempérée : la matière se détend et se pose plus facilement.
           </li>
           <li>
-            <strong>Une petite LED ne s&apos;allume pas ?</strong> Les LED de veilleuse, de plaque
-            ou d&apos;habitacle ont un sens. Retirez-la, tournez-la d&apos;un demi-tour et
-            remettez-la.
-          </li>
-          <li>
-            <strong>Changez les deux côtés</strong> en même temps, pour une lumière identique à
-            gauche et à droite.
-          </li>
-          <li>
-            <strong>Testez avant de tout refermer</strong>, puis remettez bien les caches et les
-            joints : un phare mal refermé prend l&apos;humidité et fait de la buée.
+            Aspirez les sièges, reculez les sièges avant au maximum et retirez les appuie-tête.
+            Comptez environ une heure pour un véhicule complet.
           </li>
         </ul>
       </Article>
 
-      <Article numero={3} id="emplacements" titre="Emplacement par emplacement">
+      <Article numero={2} id="sieges-avant" titre="Sièges avant">
+        <ul className="list-disc pl-5">
+          <li>
+            <strong>Commencez par le dossier</strong> : enfilez la housse par le haut, en la
+            descendant de façon égale des deux côtés, coutures alignées sur les bords du siège.
+          </li>
+          <li>
+            Passez les sangles et les élastiques <strong>entre le dossier et l&apos;assise</strong>,
+            puis accrochez-les sous le siège. Ne les attachez jamais sur un câble, un rail ou un
+            mécanisme de réglage.
+          </li>
+          <li>
+            Posez ensuite l&apos;assise, tendez-la de l&apos;avant vers l&apos;arrière et fixez-la
+            sous le siège avec les crochets fournis.
+          </li>
+          <li>Remettez les appuie-tête, puis enfilez leur housse.</li>
+        </ul>
+      </Article>
+
+      <Article numero={3} id="airbags" titre="Airbags latéraux : le point à respecter">
         <p>
-          <strong>Éclairage de plaque.</strong> Il se change de l&apos;extérieur, sous le hayon ou
-          dans le pare-chocs arrière. Le boîtier se déclipse avec l&apos;outil en plastique, ou se
-          dévisse. Avec un module de plaque complet, on remplace tout le boîtier : il se clipse à la
-          place de celui d&apos;origine.
-        </p>
-        <p>
-          <strong>Veilleuses et feux de jour.</strong> L&apos;accès se fait le plus souvent par le
-          compartiment moteur, derrière le phare : retirez le cache, tournez le porte-ampoule
-          d&apos;un quart de tour et tirez. Sur certains véhicules, il faut passer par le passage
-          de roue.
-        </p>
-        <p>
-          <strong>Feux de croisement (effet xénon ou LED).</strong> Même accès, par l&apos;arrière
-          du phare. L&apos;ampoule est tenue par un ressort ou une bague : notez sa position avant
-          de l&apos;ouvrir. Une LED haute puissance porte un petit radiateur à l&apos;arrière :
-          vérifiez qu&apos;il trouve sa place et que le cache du phare se referme.
-        </p>
-        <p>
-          <strong>Antibrouillards.</strong> Ils s&apos;atteignent en général par-dessous le
-          pare-chocs ou par le passage de roue.
-        </p>
-        <p>
-          <strong>Feux de recul.</strong> Ils se changent depuis l&apos;intérieur du coffre, par
-          une trappe ou en écartant la garniture ; parfois, le bloc du feu se dévisse.
+          Si vos sièges ont un airbag latéral (étiquette « AIRBAG » sur le côté du dossier), la
+          housse porte une <strong>couture spéciale ou une découpe</strong> qui s&apos;ouvre au
+          déclenchement. Placez-la exactement du côté de l&apos;airbag, sans rien ajouter par-dessus
+          : pas d&apos;épingle, pas de sangle supplémentaire, pas de coussin.
         </p>
       </Article>
 
-      <Article numero={4} id="apres" titre="Après le montage">
+      <Article numero={4} id="banquette" titre="Banquette arrière">
+        <p>
+          Sur la plupart des véhicules, l&apos;assise de la banquette se soulève ou se déclipse :
+          c&apos;est plus simple de la retirer pour poser la housse. Sur une banquette fractionnée,
+          posez chaque partie séparément et vérifiez que le rabattement fonctionne encore. Gardez
+          les boucles de ceinture et les fixations Isofix accessibles par les ouvertures prévues.
+        </p>
+      </Article>
+
+      <Article numero={5} id="tapis" titre="Tapis de sol">
         <ul className="list-disc pl-5">
-          <li>Vérifiez que tout s&apos;allume, moteur tournant.</li>
           <li>
-            <strong>Un message d&apos;erreur au tableau de bord</strong>, ou une lumière qui
-            clignote ? Certains véhicules surveillent la consommation des ampoules. Écrivez-nous
-            avec votre modèle : nous vous indiquons la solution pour votre voiture.
+            Retirez les anciens tapis : <strong>ne superposez jamais deux tapis</strong> côté
+            conducteur, ils peuvent gêner les pédales.
           </li>
           <li>
-            Après un changement des feux de croisement, faites contrôler le{' '}
-            <strong>réglage des phares</strong> (un garage le fait en quelques minutes), pour bien
-            voir la route sans éblouir les autres.
+            Fixez le tapis conducteur sur les plots ou crochets d&apos;origine du véhicule, puis
+            vérifiez qu&apos;il ne glisse pas et n&apos;accroche aucune pédale, enfoncée à fond.
+          </li>
+        </ul>
+      </Article>
+
+      <Article numero={6} id="entretien" titre="Entretien">
+        <ul className="list-disc pl-5">
+          <li>
+            Suivez l&apos;étiquette d&apos;entretien de votre gamme. En général : aspirateur et
+            nettoyage à l&apos;éponge humide avec un savon doux ; pas de javel ni de solvant.
+          </li>
+          <li>
+            Les tapis moquette s&apos;aspirent et se brossent ; les tapis caoutchouc se rincent à
+            l&apos;eau claire.
           </li>
         </ul>
       </Article>
 
       {guides.length > 0 ? (
-        <Article numero={5} id="guides" titre="Guides par véhicule">
+        <Article numero={7} id="guides" titre="Guides par véhicule">
           <ul className="list-disc pl-5">
             {guides.map((guide) => (
               <li key={guide.slug}>
@@ -143,10 +138,10 @@ export default async function Page() {
         </Article>
       ) : null}
 
-      <Article numero={guides.length > 0 ? 6 : 5} id="aide" titre="Besoin d'aide pour votre véhicule ?">
+      <Article numero={guides.length > 0 ? 8 : 7} id="aide" titre="Besoin d'aide pour votre véhicule ?">
         <p>
           Envoyez-nous le modèle et l&apos;année de votre véhicule, et si possible une photo de
-          l&apos;emplacement, depuis le{' '}
+          vos sièges, depuis le{' '}
           <Link href={contact.contactPath} className="underline underline-offset-2">
             formulaire de contact
           </Link>
@@ -159,7 +154,7 @@ export default async function Page() {
               </a>
             </>
           ) : null}
-          . Nous vous expliquons le montage pour votre voiture.
+          . Nous vous expliquons la pose pour votre véhicule.
         </p>
       </Article>
     </PageLegale>

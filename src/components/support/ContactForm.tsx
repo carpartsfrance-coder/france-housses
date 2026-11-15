@@ -138,7 +138,7 @@ export function ContactForm({
           autoComplete="off"
           maxLength={120}
           placeholder="Peugeot 308 II, 2017"
-          hint="Marque, modèle et année. L’année sépare deux générations qui n’ont pas le même éclairage."
+          hint="Marque, modèle et année. L’année sépare deux générations qui n’ont pas les mêmes sièges."
         />
       ) : null}
 
@@ -155,14 +155,14 @@ export function ContactForm({
           maxLength={2000}
           placeholder={
             subject === 'vehicule'
-              ? 'Quels éclairages vous intéressent : phares, plaque, veilleuses, feux de recul…'
+              ? 'Ce qui vous intéresse : housses avant, banquette arrière, tapis, bâche…'
               : 'Véhicule, référence du produit, ce que vous cherchez à obtenir…'
           }
           className="w-full rounded-[7px] border border-[#d4d4d4] bg-white p-3 text-[13px] text-[#323232] placeholder:text-muted"
         />
         <p className="text-[10px] font-normal text-muted">
           {subject === 'vehicule'
-            ? 'La finition et le type de phare d’origine (halogène, xénon) achèvent de trancher : deux versions d’un même modèle ne reçoivent pas les mêmes ampoules.'
+            ? 'La finition, le nombre de places et les accoudoirs achèvent de trancher : deux versions d’un même modèle n’ont pas toujours les mêmes sièges.'
             : 'Le modèle exact du véhicule et la référence inscrite sur la pièce d’origine sont ce qui évite le plus souvent un aller-retour.'}
         </p>
       </div>

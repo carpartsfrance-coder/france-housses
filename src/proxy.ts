@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { redirectionVersDomainePublic } from '@/lib/domaine'
 import { siteConfig } from '@/lib/identity'
+import { lireAncienneAdresse } from '@/lib/anciennes-url'
 
 /**
  * Redirige l'adresse technique de Render vers le domaine public.
@@ -24,6 +25,16 @@ export function proxy(request: NextRequest) {
     siteConfig.url,
   )
   if (destination) return NextResponse.redirect(destination, 308)
+
+  // Ancienne adresse de france-housses.fr (PrestaShop) → redirection 301,
+  // calculée par /api/ancienne-url (qui lit la base).
+  const { pathname, search } = request.nextUrl
+  if (!pathname.startsWith('/api/') && lireAncienneAdresse(pathname, request.nextUrl.searchParams)) {
+    const cible = request.nextUrl.clone()
+    cible.pathname = '/api/ancienne-url'
+    cible.search = `?chemin=${encodeURIComponent(pathname + search)}`
+    return NextResponse.rewrite(cible)
+  }
 
   return NextResponse.next()
 }

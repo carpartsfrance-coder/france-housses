@@ -1,6 +1,8 @@
 import { nomDeLEmplacement } from '@/lib/packs-vue'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { CHEMIN_PAR_TYPE } from '@/lib/queries/vehicules'
 import { prisma } from '@/lib/db'
 import { getSelectedVehicle } from '@/lib/session'
 import { equipementPrecise } from '@/lib/equipement'
@@ -27,7 +29,7 @@ import { EclairagesParZone } from '@/components/vehicule/EclairagesParZone'
 import { TotalEclairage } from '@/components/vehicule/TotalEclairage'
 
 export const metadata: Metadata = {
-  title: 'Les éclairages pour votre véhicule',
+  title: 'Les produits pour votre véhicule',
   robots: { index: false, follow: false },
 }
 
@@ -258,6 +260,23 @@ async function getByPosition(configurationId: string): Promise<GroupeResultat[] 
 export default async function Page() {
   const vehicle = await getSelectedVehicle()
 
+  // France Housses : la page d'un véhicule est celle de sa version
+  // (/vehicules/auto/renault/clio/clio-4-2012), qui montre aussi les gammes
+  // fabriquées à la commande. Cette page n'en est plus que l'aiguillage.
+  if (vehicle) {
+    const config = await prisma.vehicleConfiguration.findUnique({
+      where: { id: vehicle.configurationId },
+      select: {
+        generation: {
+          select: { slug: true, model: { select: { slug: true, make: { select: { slug: true, type: true } } } } },
+        },
+      },
+    })
+    const g = config?.generation
+    const chemin = g ? (CHEMIN_PAR_TYPE as Record<string, string>)[g.model.make.type] : undefined
+    if (g && chemin) redirect(`/vehicules/${chemin}/${g.model.make.slug}/${g.model.slug}/${g.slug}`)
+  }
+
   if (!vehicle) {
     return (
       <div className="container-page flex flex-col gap-6 py-10">
@@ -265,16 +284,16 @@ export default async function Page() {
           items={[
             { label: 'Accueil', href: '/' },
             { label: 'Mon véhicule', href: '/vehicule' },
-            { label: 'Mes éclairages' },
+            { label: 'Mes produits' },
           ]}
         />
         <h1 className="text-3xl font-extrabold sm:text-4xl">
-          Les éclairages pour votre véhicule
+          Les produits pour votre véhicule
         </h1>
         <EmptyState
           icon={<IconCar className="size-8" />}
           title="Aucun véhicule sélectionné."
-          description="Cette page montre les compatibilités d'un véhicule précis. Sans lui, rien ne peut être affirmé : indiquez votre marque, votre modèle et votre année pour obtenir les éclairages qui lui correspondent."
+          description="Cette page montre les compatibilités d'un véhicule précis. Sans lui, rien ne peut être affirmé : indiquez votre marque, votre modèle et sa version pour voir les housses et tapis qui lui correspondent."
           action={{ label: 'Indiquer mon véhicule', href: '/vehicule' }}
         />
       </div>

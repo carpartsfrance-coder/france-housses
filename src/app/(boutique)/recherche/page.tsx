@@ -248,8 +248,8 @@ export default async function RecherchePage({
           {/* L'explication n'a d'intérêt que si l'on cherche encore quoi taper :
               elle reste sur grand écran, et sur l'état vide plus bas. */}
           <p className="mt-2 hidden max-w-2xl text-base text-muted-strong sm:block">
-            Tapez votre véhicule et l’éclairage, dans l’ordre que vous voulez : « clio 4
-            veilleuses », « golf 7 phares », « 308 plaque ».
+            Tapez votre véhicule et le produit, dans l’ordre que vous voulez : « clio 4
+            housse », « 308 tapis », « trafic banquette ».
           </p>
         </div>
 
@@ -412,7 +412,7 @@ export default async function RecherchePage({
                 }}
               />
             ) : (
-              estUneReferenceDAmpoule(state.q) ? (
+              false && estUneReferenceDAmpoule(state.q) ? (
                 <EmptyState
                   title="Nos packs se choisissent par véhicule, pas par référence d’ampoule."
                   description="Chaque pack contient déjà les bonnes ampoules pour votre véhicule, emplacement par emplacement : vous n’avez pas à chercher la référence. Indiquez votre marque, votre modèle et votre année, ou tapez-les ici (« golf 7 phares »)."

@@ -548,7 +548,7 @@ export function BuyBox({
                     <strong className="text-[15px]">{variant.name}</strong>
                     <small className="text-[13px] text-[#5f6266]">
                       {variant.components.length > 0
-                        ? 'Ampoules + accessoires nécessaires'
+                        ? 'Produit + accessoires nécessaires'
                         : variant.missingAccessories.length > 0
                           ? 'Vous possédez déjà les accessoires'
                           : PACKAGING_LABELS[variant.packaging]}

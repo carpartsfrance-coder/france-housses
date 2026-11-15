@@ -52,8 +52,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `Éclairage ${make.data.name}`,
-    description: `Les éclairages documentés pour les modèles ${make.data.name}.`,
+    title: `Housses et tapis ${make.data.name}`,
+    description: `Housses de siège et tapis de sol sur mesure pour les modèles ${make.data.name}.`,
     alternates: { canonical: `/vehicules/${type}/${marque}` },
   }
 }
@@ -87,7 +87,7 @@ export default async function PacksMarquePage({ params }: PageProps) {
       />
 
       <h1 className="text-[25px] leading-[1.2] font-bold tracking-[-0.9px] fiche:text-[29px] fiche:tracking-[-1px]">
-        Éclairage {makeName}
+        Housses et tapis {makeName}
       </h1>
       <p className="mt-2 max-w-[580px] text-[11px] leading-[1.8] text-[#7a7a7a]">
         Choisissez votre modèle et sa période de fabrication. Les années indiquées sont celles de

@@ -44,12 +44,15 @@ export type VehiculeDeLaFiche = {
 
 /** « 2010–2018 », ou « depuis 2018 » pour une génération toujours produite. */
 export function anneesCourtes(debut: number, fin: number | null): string {
+  // Année de début inconnue (0) : référentiel France Housses.
+  if (!debut) return fin === null ? 'tous millésimes' : `jusqu’à ${fin}`
   if (fin === null) return `depuis ${debut}`
   return debut === fin ? String(debut) : `${debut}–${fin}`
 }
 
 /** « de 2010 à 2018 », « en 2018 », ou « depuis 2018 ». */
 export function anneesEnToutesLettres(debut: number, fin: number | null): string {
+  if (!debut) return fin === null ? 'toutes années' : `jusqu’en ${fin}`
   if (fin === null) return `depuis ${debut}`
   return debut === fin ? `en ${debut}` : `de ${debut} à ${fin}`
 }
@@ -208,7 +211,8 @@ export function nomAvecAnnees(nom: string, vehicule: VehiculeDeLaFiche | null): 
 
 /** « Centrale de clignotants LED pour Yamaha YZF-R6 600 (2006–2007) ». */
 export function nomAvecPeriode(nom: string, anneeDebut: number, anneeFin: number | null): string {
-  if (nom.includes(String(anneeDebut))) return nom
+  if (!anneeDebut && anneeFin === null) return nom
+  if (anneeDebut ? nom.includes(String(anneeDebut)) : anneeFin !== null && nom.includes(String(anneeFin))) return nom
   return `${nom} (${anneesCourtes(anneeDebut, anneeFin)})`
 }
 
@@ -279,7 +283,7 @@ export function descriptionSeo(
   const phrases = [
     type
       ? `${intituleSeo(produit, vehicule)}. ${type.contenu}`
-      : `${intituleSeo(produit, vehicule)}, en pack prêt à monter sans modifier le câblage.`,
+      : `${intituleSeo(produit, vehicule)}${produit.tagline ? ` : ${produit.tagline.replace(/\.$/, '')}` : ''}.`,
   ]
   const { seuilFranchiseCents, retourJours, garantie } = conditions
   if (garantie && seuilFranchiseCents !== null) {
