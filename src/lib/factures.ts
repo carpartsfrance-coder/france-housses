@@ -1,3 +1,4 @@
+import { lireReponses } from './questionnaire'
 import 'server-only'
 import { prisma } from './db'
 
@@ -104,7 +105,7 @@ export async function donneesDuDocument(documentId: string) {
       email: o.email,
     },
     lignes: o.lines.map((l) => ({
-      designation: l.productName,
+      designation: designationFacture(l),
       reference: l.sku,
       quantite: l.quantity,
       ttcCents: l.lineTotalCents,
@@ -195,4 +196,19 @@ export async function exportComptable(du: Date, au: Date): Promise<string> {
   }
   // BOM : Excel lit alors les accents correctement.
   return '﻿' + lignes.join('\r\n') + '\r\n'
+}
+
+/**
+ * Désignation sur la facture : le produit, son choix (coloris, places) et le
+ * véhicule déclaré au questionnaire, pour qu'on sache ce qui a été fabriqué.
+ */
+function designationFacture(l: { productName: string; variantName: string; answers: unknown }): string {
+  const morceaux = [l.productName]
+  if (l.variantName && !/^standard$/i.test(l.variantName.trim())) morceaux.push(l.variantName)
+  const vehicule = lireReponses(l.answers)
+    .filter((r) => /^(marque|mod[eè]le|ann[ée]e)/i.test(r.label.trim()))
+    .map((r) => r.value)
+    .join(' ')
+  if (vehicule) morceaux.push(`véhicule : ${vehicule}`)
+  return morceaux.join(' — ')
 }
