@@ -11,7 +11,7 @@
  *
  * 1. **Le slug est une adresse publique, pas un libellé.** Il se fabrique à la
  *    création puis ne bouge plus tout seul : renommer « Golf » en « Golf VII »
- *    ne doit pas déplacer `/packs/auto/volkswagen/golf`. Le changer reste
+ *    ne doit pas déplacer `/vehicules/auto/volkswagen/golf`. Le changer reste
  *    possible, mais c'est une opération distincte, qui s'annonce.
  * 2. **Une compatibilité n'est confirmée que si quelqu'un l'a vérifiée.**
  *    `source` et `verifiedAt` ne sont jamais remplis par le code : sans eux,
@@ -89,7 +89,7 @@ export function vehiclePackPath(
   modelSlug?: string | null,
   generationSlug?: string | null,
 ): string {
-  const parts = ['/packs', typePath, makeSlug]
+  const parts = ['/vehicules', typePath, makeSlug]
 
   for (const niveau of [modelSlug, generationSlug]) {
     if (!niveau) break
@@ -102,18 +102,26 @@ export function vehiclePackPath(
 /* Types de véhicule                                                          */
 /* -------------------------------------------------------------------------- */
 
-export type VehicleTypeValue = 'CAR' | 'MOTORCYCLE' | 'BOTH'
+export type VehicleTypeValue = 'CAR' | 'VAN' | 'MOTORHOME' | 'TRUCK' | 'MOTORCYCLE' | 'BOTH'
 
 export const VEHICLE_TYPE_LABELS: Record<VehicleTypeValue, string> = {
-  CAR: 'Voiture',
-  MOTORCYCLE: 'Moto',
-  BOTH: 'Voiture et moto',
+  CAR: 'Auto',
+  VAN: 'Utilitaire',
+  MOTORHOME: 'Camping-car',
+  TRUCK: 'Poids lourd',
+  MOTORCYCLE: 'Moto (inutilisé)',
+  BOTH: 'Tous types',
 }
+
+/** Les quatre types servis par le parcours, dans l'ordre d'affichage. */
+export const TYPES_DU_PARCOURS = ['CAR', 'VAN', 'MOTORHOME', 'TRUCK'] as const
 
 /** Chemin public d'un type, ou `null` quand aucun parcours ne le liste. */
 export function typePath(type: VehicleTypeValue): string | null {
   if (type === 'CAR') return 'auto'
-  if (type === 'MOTORCYCLE') return 'moto'
+  if (type === 'VAN') return 'utilitaire'
+  if (type === 'MOTORHOME') return 'camping-car'
+  if (type === 'TRUCK') return 'poids-lourd'
   return null
 }
 

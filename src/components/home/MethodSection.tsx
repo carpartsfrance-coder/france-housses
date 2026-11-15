@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getPackGeneration } from '@/lib/queries/packs'
+import { getPackGeneration } from '@/lib/queries/vehicules'
 import { formatPrice, promesseRetour } from '@/lib/identity'
 
 /**
@@ -48,7 +48,7 @@ async function exemple() {
       annees: v.years,
       lignes: lignes.slice(0, LIGNES_MAX),
       total: lignes.length,
-      href: `/packs/auto/${EXEMPLE.marque}/${EXEMPLE.modele}/${EXEMPLE.generation}`,
+      href: `/vehicules/auto/${EXEMPLE.marque}/${EXEMPLE.modele}/${EXEMPLE.generation}`,
     }
   } catch {
     return null

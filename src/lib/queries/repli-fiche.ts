@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '../db'
-import { CHEMIN_PAR_TYPE } from './packs'
+import { CHEMIN_PAR_TYPE } from './vehicules'
 import { GENERATION_VISIBLE, MARQUE_VISIBLE, MODELE_VISIBLE } from './vehicules-visibles'
 
 /**
@@ -46,14 +46,14 @@ export async function pageDeRepliFiche(slug: string): Promise<string | null> {
       where: {
         ...GENERATION_VISIBLE,
         configurations: { some: { fitments: { some: { variant: { productId: produit.id } } } } },
-        model: { ...MODELE_VISIBLE, make: { ...MARQUE_VISIBLE, type: { in: ['CAR', 'MOTORCYCLE'] } } },
+        model: { ...MODELE_VISIBLE, make: { ...MARQUE_VISIBLE, type: { in: ['CAR', 'VAN', 'MOTORHOME', 'TRUCK'] } } },
       },
       select: { slug: true, model: { select: { slug: true, make: { select: { slug: true, type: true } } } } },
     })
     if (generation) {
       const { model } = generation
-      const type = CHEMIN_PAR_TYPE[model.make.type as 'CAR' | 'MOTORCYCLE']
-      return `/packs/${type}/${model.make.slug}/${model.slug}/${generation.slug}`
+      const type = CHEMIN_PAR_TYPE[model.make.type as keyof typeof CHEMIN_PAR_TYPE]
+      return `/vehicules/${type}/${model.make.slug}/${model.slug}/${generation.slug}`
     }
 
     for (const { category } of produit.categories) {
@@ -87,7 +87,7 @@ async function pageDuVehiculeDansLAdresse(slug: string): Promise<string | null> 
   const generations = await prisma.vehicleGeneration.findMany({
     where: {
       ...GENERATION_VISIBLE,
-      model: { ...MODELE_VISIBLE, make: { ...MARQUE_VISIBLE, type: { in: ['CAR', 'MOTORCYCLE'] } } },
+      model: { ...MODELE_VISIBLE, make: { ...MARQUE_VISIBLE, type: { in: ['CAR', 'VAN', 'MOTORHOME', 'TRUCK'] } } },
     },
     select: { slug: true, model: { select: { slug: true, make: { select: { slug: true, type: true } } } } },
   })
@@ -95,6 +95,6 @@ async function pageDuVehiculeDansLAdresse(slug: string): Promise<string | null> 
     .filter((generation) => slug.endsWith(`-${generation.model.make.slug}-${generation.slug}`))
     .sort((a, b) => b.slug.length + b.model.make.slug.length - (a.slug.length + a.model.make.slug.length))[0]
   if (!retenue) return null
-  const type = CHEMIN_PAR_TYPE[retenue.model.make.type as 'CAR' | 'MOTORCYCLE']
-  return `/packs/${type}/${retenue.model.make.slug}/${retenue.model.slug}/${retenue.slug}`
+  const type = CHEMIN_PAR_TYPE[retenue.model.make.type as keyof typeof CHEMIN_PAR_TYPE]
+  return `/vehicules/${type}/${retenue.model.make.slug}/${retenue.model.slug}/${retenue.slug}`
 }

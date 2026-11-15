@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/Badge'
 import { Alert, Card, EmptyState } from '@/components/ui/Surface'
 import { IconCar, IconMotorcycle } from '@/components/ui/icons'
-import { BrandMark } from '@/components/packs/BrandMark'
+import { BrandMark } from '@/components/vehicules/BrandMark'
 import { VehicleTree, type MakeRow } from '@/components/admin/VehicleTree'
 
 /**
@@ -176,11 +176,7 @@ function ReferentielEnLecture({ rows }: { rows: MakeRow[] }) {
             <details key={make.id} open={rows.length === 1}>
               <summary className="flex min-h-11 cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2.5 text-[13px] hover:bg-surface-soft">
                 <BrandMark name={make.name} logo={make.logo} size="sm" />
-                {make.type === 'MOTORCYCLE' ? (
-                  <IconMotorcycle className="size-4 shrink-0 text-muted-strong" />
-                ) : (
-                  <IconCar className="size-4 shrink-0 text-muted-strong" />
-                )}
+                <IconCar className="size-4 shrink-0 text-muted-strong" />
                 <span className="font-semibold">{make.name}</span>
                 <span className="text-[11px] text-muted">{VEHICLE_TYPE_LABELS[make.type]}</span>
                 <span className="text-[11px] text-muted">
@@ -243,7 +239,7 @@ function ReferentielEnLecture({ rows }: { rows: MakeRow[] }) {
                                 )}
                                 {chemin ? (
                                   <code className="rounded bg-white px-1 text-[10px] text-muted">
-                                    /packs/{chemin}/{make.slug}/{model.slug}/{generation.slug}
+                                    /vehicules/{chemin}/{make.slug}/{model.slug}/{generation.slug}
                                   </code>
                                 ) : null}
                                 {generation.active ? null : <Badge tone="neutral">Inactive</Badge>}

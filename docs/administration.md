@@ -126,7 +126,7 @@ Trois règles tenues par le code, et non par la discipline de l'opérateur :
   perdre, et se défait.
 
 L'**adresse publique** (le slug) ne bouge pas quand on renomme : elle est dans
-les URL `/packs/...` déjà partagées et indexées. La changer est une opération à
+les URL `/vehicules/...` déjà partagées et indexées. La changer est une opération à
 part, sous confirmation explicite, et l'écran annonce que les anciens liens
 cesseront de répondre — ce projet ne tient aucune table de redirections.
 

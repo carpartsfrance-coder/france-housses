@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/cn'
-import { BrandMark } from '@/components/packs/BrandMark'
+import { BrandMark } from '@/components/vehicules/BrandMark'
 import { IconCar, IconChevronRight, IconMotorcycle, IconSearch } from '@/components/ui/icons'
 import { LienVehiculeAbsent } from './LienVehiculeAbsent'
 

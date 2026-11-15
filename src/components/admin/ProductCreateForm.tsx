@@ -134,13 +134,15 @@ export function ProductCreateForm({
             id="vehicleType"
             name="vehicleType"
             label="Type de véhicule"
-            hint="Il décide des listes où le produit apparaît : un produit « voiture » ne sort jamais dans un parcours moto."
+            hint="Il décide des listes où le produit apparaît : un produit « auto » ne sort jamais dans un parcours poids lourd."
             defaultValue={texteSaisi(state.saisie, 'vehicleType', 'CAR')}
             required
           >
-            <option value="CAR">Voiture</option>
-            <option value="MOTORCYCLE">Moto</option>
-            <option value="BOTH">Voiture et moto</option>
+            <option value="CAR">Auto</option>
+            <option value="VAN">Utilitaire</option>
+            <option value="MOTORHOME">Camping-car</option>
+            <option value="TRUCK">Poids lourd</option>
+            <option value="BOTH">Tous types</option>
           </SelectField>
         </div>
 

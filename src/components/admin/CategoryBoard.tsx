@@ -13,6 +13,11 @@ import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/cn'
 
 const FAMILLES: Record<string, string> = {
+  SEAT_COVER: 'Housses de siège',
+  FLOOR_MAT: 'Tapis de sol',
+  BODY_COVER: 'Bâches',
+  SEAT_FOAM: "Mousses d'assise",
+  GARDEN: 'Salon de jardin',
   HEADLIGHT: 'Phares',
   INTERIOR: 'Intérieur',
   PLATE: 'Plaque',

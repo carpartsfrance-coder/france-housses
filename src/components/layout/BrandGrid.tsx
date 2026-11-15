@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BrandMark } from '@/components/packs/BrandMark'
+import { BrandMark } from '@/components/vehicules/BrandMark'
 import { cn } from '@/lib/cn'
 
 export type BrandGridEntry = {

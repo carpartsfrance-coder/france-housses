@@ -8,6 +8,7 @@ import { CART_COOKIE, VEHICLE_COOKIE } from '../session'
 import { newCartToken, sellableQuantity } from '../cart'
 import { getDeliveryTeaser } from '../shipping'
 import { formatPrice } from '../identity'
+import { normaliserReponses, type ReponseBrute } from '../questionnaire'
 
 /**
  * Actions du panier.
@@ -40,6 +41,11 @@ const addSchema = z.object({
   quantity: z.number().int().min(1).max(99).default(1),
   /** Accessoires explicitement acceptés par le client. */
   extraVariantIds: z.array(z.string().min(1)).max(10).default([]),
+  /** Réponses au questionnaire de la fiche (véhicule, options, commentaire). */
+  answers: z
+    .array(z.object({ id: z.string().min(1).max(40), value: z.string().max(1000) }))
+    .max(60)
+    .default([]),
 })
 
 async function getOrCreateCart() {
@@ -77,16 +83,34 @@ async function getOrCreateCart() {
 export async function addToCart(input: unknown): Promise<CartActionResult> {
   const parsed = addSchema.safeParse(input)
   if (!parsed.success) return { ok: false, error: 'Demande invalide.' }
-  const { variantId, quantity, extraVariantIds } = parsed.data
+  const { variantId, quantity, extraVariantIds, answers } = parsed.data
 
   try {
     const variant = await prisma.productVariant.findUnique({
       where: { id: variantId },
-      include: { product: { select: { status: true, name: true } } },
+      include: {
+        product: {
+          select: {
+            status: true,
+            name: true,
+            questionnaire: { select: { fields: true, dependencies: true } },
+          },
+        },
+      },
     })
     if (!variant || !variant.active || variant.product.status !== 'PUBLISHED') {
       return { ok: false, error: "Cet article n'est plus disponible." }
     }
+
+    /*
+      Questionnaire : les libellés et les valeurs possibles viennent de la base,
+      jamais du navigateur. Une réponse obligatoire manquante bloque l'ajout.
+    */
+    const reponses = normaliserReponses(
+      variant.product.questionnaire,
+      answers as ReponseBrute[],
+    )
+    if (!reponses.ok) return { ok: false, error: reponses.error }
 
     const store = await cookies()
     const configurationId = store.get(VEHICLE_COOKIE)?.value ?? null
@@ -96,15 +120,23 @@ export async function addToCart(input: unknown): Promise<CartActionResult> {
     // La variante principale, puis les accessoires acceptés. Chacun est
     // contrôlé séparément : un accessoire en rupture ne doit pas faire échouer
     // l'ajout du produit principal.
-    const targets: Array<{ id: string; quantity: number; requiredBy: string | null }> = [
-      { id: variantId, quantity, requiredBy: null },
-      ...extraVariantIds.map((id) => ({ id, quantity: 1, requiredBy: variantId })),
+    const targets: Array<{
+      id: string
+      quantity: number
+      requiredBy: string | null
+      answers: typeof reponses.answers
+      answersKey: string
+    }> = [
+      { id: variantId, quantity, requiredBy: null, answers: reponses.answers, answersKey: reponses.key },
+      ...extraVariantIds.map((id) => ({ id, quantity: 1, requiredBy: variantId, answers: [], answersKey: '' })),
     ]
 
     for (const target of targets) {
       const sellable = await sellableQuantity(target.id)
       const existing = await prisma.cartLine.findUnique({
-        where: { cartId_variantId: { cartId: cart.id, variantId: target.id } },
+        where: {
+          cartId_variantId_answersKey: { cartId: cart.id, variantId: target.id, answersKey: target.answersKey },
+        },
       })
       const wanted = (existing?.quantity ?? 0) + target.quantity
 
@@ -128,11 +160,15 @@ export async function addToCart(input: unknown): Promise<CartActionResult> {
       }
 
       await prisma.cartLine.upsert({
-        where: { cartId_variantId: { cartId: cart.id, variantId: target.id } },
+        where: {
+          cartId_variantId_answersKey: { cartId: cart.id, variantId: target.id, answersKey: target.answersKey },
+        },
         update: { quantity: granted },
         create: {
           cartId: cart.id,
           variantId: target.id,
+          answers: target.answers.length > 0 ? target.answers : undefined,
+          answersKey: target.answersKey,
           quantity: granted,
           requiredBy: target.requiredBy,
           addedForConfigurationId: configurationId || null,

@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/ui/Surface'
  * client comme une donnée du référentiel.
  *
  * Même état qu'un catalogue momentanément illisible côté marques
- * (`app/packs/[type]/page.tsx`), et volontairement la même formulation : c'est
+ * (`app/vehicules/[type]/page.tsx`), et volontairement la même formulation : c'est
  * la phrase qui empêche le client de conclure à une absence.
  */
 export function PackReadFailure({
@@ -32,7 +32,7 @@ export function PackReadFailure({
       <Breadcrumb
         items={[
           { label: 'Accueil', href: '/' },
-          { label: libelle.long, href: `/packs/${type}` },
+          { label: libelle.long, href: `/vehicules/${type}` },
           { label: 'Momentanément indisponible' },
         ]}
       />

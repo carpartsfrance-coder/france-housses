@@ -24,22 +24,33 @@ import { GENERATION_VISIBLE, MARQUE_VISIBLE, MODELE_VISIBLE } from './vehicules-
  * pour tout type que le catalogue viendrait à proposer.
  */
 
-export type PackVehicleType = 'CAR' | 'MOTORCYCLE'
+export type PackVehicleType = 'CAR' | 'VAN' | 'MOTORHOME' | 'TRUCK'
 
-/** `auto` et `moto` dans les URL ; `CAR` et `MOTORCYCLE` en base. */
+/** Segments d'URL publics ; types en base. */
 export const TYPE_PAR_CHEMIN: Record<string, PackVehicleType> = {
   auto: 'CAR',
-  moto: 'MOTORCYCLE',
+  utilitaire: 'VAN',
+  'camping-car': 'MOTORHOME',
+  'poids-lourd': 'TRUCK',
 }
 
 export const CHEMIN_PAR_TYPE: Record<PackVehicleType, string> = {
   CAR: 'auto',
-  MOTORCYCLE: 'moto',
+  VAN: 'utilitaire',
+  MOTORHOME: 'camping-car',
+  TRUCK: 'poids-lourd',
 }
 
 export const LIBELLE_PAR_CHEMIN: Record<string, { court: string; long: string }> = {
-  auto: { court: 'Auto & Utilitaires', long: 'Packs Auto & Utilitaires' },
-  moto: { court: 'Moto & Scooter', long: 'Packs Moto & Scooter' },
+  auto: { court: 'Auto', long: 'Housses et tapis auto' },
+  utilitaire: { court: 'Utilitaire', long: 'Housses et tapis utilitaires' },
+  'camping-car': { court: 'Camping-car', long: 'Housses et tapis camping-car' },
+  'poids-lourd': { court: 'Poids lourd', long: 'Housses et tapis poids lourd' },
+}
+
+/** Vrai pour un type servi par le parcours véhicule. */
+export function estTypeDuParcours(type: string): type is PackVehicleType {
+  return type in CHEMIN_PAR_TYPE
 }
 
 export type PackMake = {

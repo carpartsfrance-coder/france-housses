@@ -40,8 +40,8 @@ export const topNav: Array<NavItem & { icon: 'return' | 'help' }> = [
  * donc pas désigner une page absente.
  */
 export const mainNav: NavItem[] = [
-  { label: 'Packs Auto & Utilitaires', href: '/packs/auto', highlight: true },
-  { label: 'Packs Moto & Scooter', href: '/packs/moto' },
+  { label: 'Packs Auto & Utilitaires', href: '/vehicules/auto', highlight: true },
+  { label: 'Packs Moto & Scooter', href: '/vehicules/moto' },
   { label: 'Ampoules & Kits LED', href: '/c/phares-led' },
   { label: 'LED au détail', href: '/c/interieur' },
   { label: 'Xénon & Halogène', href: '/c/xenon' },
@@ -60,8 +60,8 @@ export const footerNav: Array<{ title: string; items: NavItem[] }> = [
     */
     title: 'Acheter',
     items: [
-      { label: 'Packs Auto & Utilitaires', href: '/packs/auto' },
-      { label: 'Packs Moto & Scooter', href: '/packs/moto' },
+      { label: 'Packs Auto & Utilitaires', href: '/vehicules/auto' },
+      { label: 'Packs Moto & Scooter', href: '/vehicules/moto' },
       { label: 'Ampoules & Kits LED', href: '/c/phares-led' },
       { label: 'LED au détail', href: '/c/interieur' },
       { label: 'Xénon & Halogène', href: '/c/xenon' },

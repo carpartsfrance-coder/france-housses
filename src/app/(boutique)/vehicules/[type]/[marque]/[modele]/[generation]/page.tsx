@@ -6,11 +6,11 @@ import {
   LIBELLE_PAR_CHEMIN,
   TYPE_PAR_CHEMIN,
   getPackGeneration,
-} from '@/lib/queries/packs'
+} from '@/lib/queries/vehicules'
 import { getSelectedVehicle } from '@/lib/session'
 import { Breadcrumb } from '@/components/catalogue/Breadcrumb'
 import { EmptyState } from '@/components/ui/Surface'
-import { PackReadFailure } from '@/components/packs/PackReadFailure'
+import { PackReadFailure } from '@/components/vehicules/PackReadFailure'
 import { ButtonLink } from '@/components/ui/Button'
 import {
   IconArrowRight,
@@ -93,7 +93,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ]
       .filter(Boolean)
       .join(' '),
-    alternates: { canonical: `/packs/${type}/${marque}/${modele}/${generation}` },
+    alternates: { canonical: `/vehicules/${type}/${marque}/${modele}/${generation}` },
   }
 }
 
@@ -143,9 +143,9 @@ export default async function PacksGenerationPage({ params }: PageProps) {
       <Breadcrumb
         items={[
           { label: 'Accueil', href: '/' },
-          { label: libelle.long, href: `/packs/${type}` },
-          { label: data.makeName, href: `/packs/${type}/${marque}` },
-          { label: data.modelName, href: `/packs/${type}/${marque}/${modele}` },
+          { label: libelle.long, href: `/vehicules/${type}` },
+          { label: data.makeName, href: `/vehicules/${type}/${marque}` },
+          { label: data.modelName, href: `/vehicules/${type}/${marque}/${modele}` },
           { label: `${data.generationName} ${data.years}` },
         ]}
       />

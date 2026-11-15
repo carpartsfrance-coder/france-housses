@@ -95,7 +95,7 @@ export type ProductView = {
   bulbBase: string | null
   colorTemperature: number | null
   difficulty: 'UNKNOWN' | 'EASY' | 'MEDIUM' | 'HARD'
-  vehicleType: 'CAR' | 'MOTORCYCLE' | 'BOTH'
+  vehicleType: 'CAR' | 'VAN' | 'MOTORHOME' | 'TRUCK' | 'MOTORCYCLE' | 'BOTH'
   metaTitle: string | null
   metaDescription: string | null
   category: { slug: string; name: string } | null

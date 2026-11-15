@@ -18,13 +18,13 @@ const A1: VehiculeDeLaFiche = {
   marque: { nom: 'Audi', slug: 'audi' },
   modele: { nom: 'A1', slug: 'a1' },
   generation: { nom: 'A1', slug: 'a1', phase: null, anneeDebut: 2010, anneeFin: 2018 },
-  chemin: '/packs/auto/audi/a1/a1',
-  cheminMarque: '/packs/auto/audi',
+  chemin: '/vehicules/auto/audi/a1/a1',
+  cheminMarque: '/vehicules/auto/audi',
 }
 const A1_II: VehiculeDeLaFiche = {
   ...A1,
   generation: { nom: 'A1 II', slug: 'a1-ii', phase: null, anneeDebut: 2018, anneeFin: null },
-  chemin: '/packs/auto/audi/a1/a1-ii',
+  chemin: '/vehicules/auto/audi/a1/a1-ii',
 }
 
 /** Une fiche telle que l'import l'a laissée en production. */

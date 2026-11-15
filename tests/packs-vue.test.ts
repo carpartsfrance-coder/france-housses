@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { PackPositionGroup, PackProduct } from '../src/lib/queries/packs'
+import type { PackPositionGroup, PackProduct } from '../src/lib/queries/vehicules'
 import {
   cartesDesPacks,
   nomDeLaZone,

@@ -5,12 +5,12 @@ import {
   LIBELLE_PAR_CHEMIN,
   TYPE_PAR_CHEMIN,
   getPackMake,
-} from '@/lib/queries/packs'
+} from '@/lib/queries/vehicules'
 import { Breadcrumb } from '@/components/catalogue/Breadcrumb'
-import { MakeSearch } from '@/components/packs/MakeSearch'
-import { PackReadFailure } from '@/components/packs/PackReadFailure'
+import { MakeSearch } from '@/components/vehicules/MakeSearch'
+import { PackReadFailure } from '@/components/vehicules/PackReadFailure'
 import { IconChevronRight } from '@/components/ui/icons'
-import { GenerationThumb } from '@/components/packs/GenerationThumb'
+import { GenerationThumb } from '@/components/vehicules/GenerationThumb'
 
 type PageProps = { params: Promise<{ type: string; marque: string }> }
 
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `Éclairage ${make.data.name}`,
     description: `Les éclairages documentés pour les modèles ${make.data.name}.`,
-    alternates: { canonical: `/packs/${type}/${marque}` },
+    alternates: { canonical: `/vehicules/${type}/${marque}` },
   }
 }
 
@@ -81,7 +81,7 @@ export default async function PacksMarquePage({ params }: PageProps) {
       <Breadcrumb
         items={[
           { label: 'Accueil', href: '/' },
-          { label: libelle.long, href: `/packs/${type}` },
+          { label: libelle.long, href: `/vehicules/${type}` },
           { label: makeName },
         ]}
       />
@@ -98,7 +98,7 @@ export default async function PacksMarquePage({ params }: PageProps) {
         makes={models.map((model) => ({
           slug: model.slug,
           name: model.name,
-          href: `/packs/${type}/${marque}/${model.slug}`,
+          href: `/vehicules/${type}/${marque}/${model.slug}`,
           hint:
             model.generations.length > 1
               ? `${model.generations.length} générations`
@@ -113,7 +113,7 @@ export default async function PacksMarquePage({ params }: PageProps) {
             <div className="flex items-center justify-between gap-4 border-b border-line px-4 py-3">
               <h2 className="text-[14px] font-bold">
                 <Link
-                  href={`/packs/${type}/${marque}/${model.slug}`}
+                  href={`/vehicules/${type}/${marque}/${model.slug}`}
                   className="underline-offset-[3px] hover:underline"
                 >
                   {model.name}
@@ -136,7 +136,7 @@ export default async function PacksMarquePage({ params }: PageProps) {
               {model.generations.map((generation) => (
                 <li key={generation.slug}>
                   <Link
-                    href={`/packs/${type}/${marque}/${model.slug}/${generation.slug}`}
+                    href={`/vehicules/${type}/${marque}/${model.slug}/${generation.slug}`}
                     className="flex min-h-14 items-center justify-between gap-4 px-4 py-2.5 transition-colors hover:bg-surface-soft"
                   >
                     <GenerationThumb photo={generation.photo} className="h-[38px] w-[56px]" />

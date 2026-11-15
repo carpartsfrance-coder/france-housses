@@ -1,6 +1,6 @@
 import { natureDuProduit } from './types-produit'
 import type { FitmentStatus } from './fitment'
-import type { PackPositionGroup, PackProduct } from './queries/packs'
+import type { PackPositionGroup, PackProduct } from './queries/vehicules'
 import { nomUtileDuConditionnement } from './nom-conditionnement'
 import { estEffetXenon } from './effet-xenon'
 import { cleDEmplacement, unParEmplacement } from './un-par-emplacement'
@@ -60,7 +60,7 @@ export function produitsSitues(groupes: PackPositionGroup[]): ProduitSitue[] {
 /**
  * Une carte d'éclairage, telle que les deux pages véhicule la dessinent.
  *
- * Il y en a deux : la page d'une génération (`/packs/...`), qui montre ce qui
+ * Il y en a deux : la page d'une génération (`/vehicules/...`), qui montre ce qui
  * est **documenté** pour le modèle, et la page des résultats
  * (`/vehicule/resultats`), qui montre ce qui est **confirmé** pour la
  * configuration retenue. Elles répondent à deux questions différentes, mais

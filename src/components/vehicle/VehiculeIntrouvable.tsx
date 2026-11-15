@@ -5,7 +5,7 @@ import { LienVehiculeAbsent } from './LienVehiculeAbsent'
 /**
  * Le corps de la 404 du parcours véhicule, partagé par ses deux entrées.
  *
- * Deux arborescences mènent au même véhicule — `/packs/…` par la marque et le
+ * Deux arborescences mènent au même véhicule — `/vehicules/…` par la marque et le
  * modèle, `/vehicule/…` par le sélecteur — et chacune a besoin de son
  * `not-found.tsx`, puisque Next.js remonte au plus proche. Le texte, lui, doit
  * être le même : deux rédactions de la même situation finiraient par ne plus
@@ -34,7 +34,7 @@ export function VehiculeIntrouvable() {
         <ButtonLink href="/vehicule" iconRight={<IconArrowRight className="size-5" />}>
           Choisir mon véhicule
         </ButtonLink>
-        <ButtonLink href="/packs/auto" variant="secondary">
+        <ButtonLink href="/vehicules/auto" variant="secondary">
           Voir les marques couvertes
         </ButtonLink>
       </div>

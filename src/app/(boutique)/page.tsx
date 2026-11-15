@@ -132,7 +132,7 @@ export default async function HomePage() {
             ...blocks.moto,
             // La rubrique « Moto & scooter » est vide : les packs moto se
             // trouvent par marque et modèle, comme ceux des voitures.
-            ctaHref: blocks.moto.ctaHref === '/c/moto' ? '/packs/moto' : blocks.moto.ctaHref,
+            ctaHref: blocks.moto.ctaHref === '/c/moto' ? '/vehicules/moto' : blocks.moto.ctaHref,
           }}
         />
       ) : null}

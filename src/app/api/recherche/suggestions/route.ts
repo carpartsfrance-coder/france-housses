@@ -1,7 +1,7 @@
 import { NextResponse, connection } from 'next/server'
 import { prisma } from '@/lib/db'
 import { GENERATION_VISIBLE } from '@/lib/queries/vehicules-visibles'
-import { CHEMIN_PAR_TYPE } from '@/lib/queries/packs'
+import { CHEMIN_PAR_TYPE } from '@/lib/queries/vehicules'
 import { motsDeRecherche } from '@/lib/recherche-mots'
 
 type Suggestion = { label: string; href: string; kind: 'véhicule' | 'produit' | 'référence' | 'culot' }
@@ -94,12 +94,12 @@ export async function GET(request: Request) {
     const items: Suggestion[] = [
       ...generations.flatMap((g) => {
         const { make } = g.model
-        if (make.type === 'BOTH') return []
+        if (!(make.type in CHEMIN_PAR_TYPE)) return []
         const annees = g.yearTo ? `${g.yearFrom}–${g.yearTo}` : `depuis ${g.yearFrom}`
         return [
           {
-            label: `Tout l'éclairage ${make.name} ${g.name} (${annees})`,
-            href: `/packs/${CHEMIN_PAR_TYPE[make.type]}/${make.slug}/${g.model.slug}/${g.slug}`,
+            label: `Housses et tapis ${make.name} ${g.name} (${annees})`,
+            href: `/vehicules/${CHEMIN_PAR_TYPE[make.type as keyof typeof CHEMIN_PAR_TYPE]}/${make.slug}/${g.model.slug}/${g.slug}`,
             kind: 'véhicule' as const,
           },
         ]

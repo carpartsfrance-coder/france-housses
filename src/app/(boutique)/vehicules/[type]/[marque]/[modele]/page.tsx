@@ -7,11 +7,11 @@ import {
   getPackMake,
   type PackLookup,
   type PackModel,
-} from '@/lib/queries/packs'
+} from '@/lib/queries/vehicules'
 import { Breadcrumb } from '@/components/catalogue/Breadcrumb'
-import { PackReadFailure } from '@/components/packs/PackReadFailure'
+import { PackReadFailure } from '@/components/vehicules/PackReadFailure'
 import { IconChevronRight } from '@/components/ui/icons'
-import { GenerationThumb } from '@/components/packs/GenerationThumb'
+import { GenerationThumb } from '@/components/vehicules/GenerationThumb'
 
 type PageProps = { params: Promise<{ type: string; marque: string; modele: string }> }
 
@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `Éclairage ${read.data.makeName} ${read.data.model.name}`,
     description: `Les générations de ${read.data.makeName} ${read.data.model.name} et leurs éclairages documentés.`,
-    alternates: { canonical: `/packs/${type}/${marque}/${modele}` },
+    alternates: { canonical: `/vehicules/${type}/${marque}/${modele}` },
   }
 }
 
@@ -93,8 +93,8 @@ export default async function PacksModelePage({ params }: PageProps) {
       <Breadcrumb
         items={[
           { label: 'Accueil', href: '/' },
-          { label: libelle.long, href: `/packs/${type}` },
-          { label: makeName, href: `/packs/${type}/${marque}` },
+          { label: libelle.long, href: `/vehicules/${type}` },
+          { label: makeName, href: `/vehicules/${type}/${marque}` },
           { label: model.name },
         ]}
       />
@@ -112,7 +112,7 @@ export default async function PacksModelePage({ params }: PageProps) {
         {model.generations.map((generation) => (
           <li key={generation.slug}>
             <Link
-              href={`/packs/${type}/${marque}/${modele}/${generation.slug}`}
+              href={`/vehicules/${type}/${marque}/${modele}/${generation.slug}`}
               className="flex min-h-[72px] items-center justify-between gap-4 rounded-[9px] border border-[#e1e1e1] px-4 py-3 transition-colors hover:border-slate-ink"
             >
               <GenerationThumb photo={generation.photo} />

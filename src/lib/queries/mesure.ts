@@ -21,7 +21,7 @@ const ETAPES: Array<{ cle: string; label: string; condition: Prisma.Sql }> = [
   {
     cle: 'vehicule',
     label: 'A choisi un véhicule ou ouvert une page véhicule',
-    condition: Prisma.sql`(path LIKE '/vehicule/resultats%' OR path LIKE '/packs/%/%/%')`,
+    condition: Prisma.sql`(path LIKE '/vehicule/resultats%' OR path LIKE '/vehicules/%/%/%')`,
   },
   { cle: 'fiche', label: 'A ouvert une fiche produit', condition: Prisma.sql`path LIKE '/p/%'` },
   { cle: 'panier', label: 'A ouvert son panier', condition: Prisma.sql`path = '/panier'` },

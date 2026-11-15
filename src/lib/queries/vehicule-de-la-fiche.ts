@@ -1,7 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { prisma } from '../db'
-import { CHEMIN_PAR_TYPE } from './packs'
+import { CHEMIN_PAR_TYPE } from './vehicules'
 import type { VehiculeDeLaFiche } from '../seo-fiche'
 
 /**
@@ -65,7 +65,7 @@ export const getVehiculeDeLaFiche = cache(
       const generation = [...generations.values()][0]
       const { model } = generation
       const { make } = model
-      const type = make.type === 'BOTH' ? null : CHEMIN_PAR_TYPE[make.type]
+      const type = make.type in CHEMIN_PAR_TYPE ? CHEMIN_PAR_TYPE[make.type as keyof typeof CHEMIN_PAR_TYPE] : null
 
       return {
         marque: { nom: make.name, slug: make.slug },
@@ -77,8 +77,8 @@ export const getVehiculeDeLaFiche = cache(
           anneeDebut: generation.yearFrom,
           anneeFin: generation.yearTo,
         },
-        chemin: type ? `/packs/${type}/${make.slug}/${model.slug}/${generation.slug}` : null,
-        cheminMarque: type ? `/packs/${type}/${make.slug}` : null,
+        chemin: type ? `/vehicules/${type}/${make.slug}/${model.slug}/${generation.slug}` : null,
+        cheminMarque: type ? `/vehicules/${type}/${make.slug}` : null,
       }
     } catch (error) {
       console.error('[fiche] véhicule de la fiche illisible', error)

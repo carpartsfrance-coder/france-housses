@@ -52,7 +52,7 @@ export async function generationRenommee(chemin: {
     })
     const slugs = new Set(generations.map((generation) => generation.slug))
     return !slugs.has(chemin.generation) && slugs.has(nouveau)
-      ? `/packs/${chemin.type}/${chemin.marque}/${chemin.modele}/${nouveau}`
+      ? `/vehicules/${chemin.type}/${chemin.marque}/${chemin.modele}/${nouveau}`
       : null
   } catch {
     return null

@@ -22,7 +22,7 @@ import {
  * promesses que la boutique fait à ses clients.
  *
  *   1. **Une adresse publique ne bouge pas toute seule.** Les slugs sont dans
- *      les URL `/packs/...` ; un renommage qui les déplacerait casserait en
+ *      les URL `/vehicules/...` ; un renommage qui les déplacerait casserait en
  *      silence des liens partagés et indexés.
  *   2. **Une compatibilité n'est confirmée que si elle a été vérifiée.** Le
  *      statut par défaut est « à vérifier », et `CONFIRMED` sans source ni
@@ -86,7 +86,7 @@ describe('resolveSlug', () => {
   })
 
   it('préfère l’adresse demandée au nom', () => {
-    // Une boutique peut vouloir /packs/auto/vw plutôt que /volkswagen.
+    // Une boutique peut vouloir /vehicules/auto/vw plutôt que /volkswagen.
     expect(resolveSlug({ name: 'Volkswagen', slug: 'vw' })).toEqual({ ok: true, value: 'vw' })
   })
 
@@ -109,15 +109,15 @@ describe('resolveSlug', () => {
 
 describe('vehiclePackPath', () => {
   it('construit l’adresse publique niveau par niveau', () => {
-    expect(vehiclePackPath('auto', 'volkswagen')).toBe('/packs/auto/volkswagen')
-    expect(vehiclePackPath('auto', 'volkswagen', 'golf')).toBe('/packs/auto/volkswagen/golf')
+    expect(vehiclePackPath('auto', 'volkswagen')).toBe('/vehicules/auto/volkswagen')
+    expect(vehiclePackPath('auto', 'volkswagen', 'golf')).toBe('/vehicules/auto/volkswagen/golf')
     expect(vehiclePackPath('moto', 'yamaha', 'mt-07', 'rm-2021')).toBe(
-      '/packs/moto/yamaha/mt-07/rm-2021',
+      '/vehicules/moto/yamaha/mt-07/rm-2021',
     )
   })
 
   it('s’arrête au premier niveau manquant, sans laisser de segment vide', () => {
-    expect(vehiclePackPath('auto', 'volkswagen', null, 'golf-vii')).toBe('/packs/auto/volkswagen')
+    expect(vehiclePackPath('auto', 'volkswagen', null, 'golf-vii')).toBe('/vehicules/auto/volkswagen')
   })
 })
 

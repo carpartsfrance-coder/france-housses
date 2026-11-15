@@ -4,10 +4,10 @@ import {
   LIBELLE_PAR_CHEMIN,
   TYPE_PAR_CHEMIN,
   listPackMakes,
-} from '@/lib/queries/packs'
+} from '@/lib/queries/vehicules'
 import { Breadcrumb } from '@/components/catalogue/Breadcrumb'
 import { EmptyState } from '@/components/ui/Surface'
-import { MakeSearch } from '@/components/packs/MakeSearch'
+import { MakeSearch } from '@/components/vehicules/MakeSearch'
 import { BrandGrid } from '@/components/layout/BrandGrid'
 
 type PageProps = { params: Promise<{ type: string }> }
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: libelle.long,
     description: `Les éclairages documentés pour votre véhicule, marque par marque.`,
-    alternates: { canonical: `/packs/${type}` },
+    alternates: { canonical: `/vehicules/${type}` },
   }
 }
 
@@ -92,7 +92,7 @@ export default async function PacksTypePage({ params }: PageProps) {
             makes={makes.map((make) => ({
               slug: make.slug,
               name: make.name,
-              href: `/packs/${type}/${make.slug}`,
+              href: `/vehicules/${type}/${make.slug}`,
               hint: make.modelCount > 1 ? `${make.modelCount} modèles` : '1 modèle',
             }))}
             label="Rechercher une marque"
@@ -108,7 +108,7 @@ export default async function PacksTypePage({ params }: PageProps) {
             tone="page"
             entries={makes.map((make) => ({
               label: make.name,
-              href: `/packs/${type}/${make.slug}`,
+              href: `/vehicules/${type}/${make.slug}`,
               hint: make.modelCount > 1 ? `${make.modelCount} modèles` : '1 modèle',
               logo: make.logo,
             }))}

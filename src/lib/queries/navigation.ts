@@ -98,7 +98,7 @@ const MAX_MARQUES = 24
  * `SET NULL` — supprimer un média détache le logo sans emporter la marque, et
  * l'affichage retombe alors sur le monogramme.
  */
-async function lireMarques(type: 'CAR' | 'MOTORCYCLE') {
+async function lireMarques(type: 'CAR' | 'VAN' | 'MOTORHOME' | 'TRUCK') {
   const makes = await prisma.vehicleMake.findMany({
     where: { type, ...MARQUE_VISIBLE },
     orderBy: [{ position: 'asc' }, { name: 'asc' }],
@@ -139,7 +139,7 @@ function colonneMarques(
       variant: 'marques',
       links: montrees.map((marque) => ({
         label: marque.name,
-        href: `/packs/${typePath}/${marque.slug}`,
+        href: `/vehicules/${typePath}/${marque.slug}`,
         count: marque.models,
         hint: marque.models > 1 ? `${marque.models} modèles` : '1 modèle',
         logo: marque.logo,
@@ -151,8 +151,8 @@ function colonneMarques(
       */
       more:
         reste > 0
-          ? { label: `Voir les ${marques.length} marques`, href: `/packs/${typePath}` }
-          : { label: 'Voir toutes les marques', href: `/packs/${typePath}` },
+          ? { label: `Voir les ${marques.length} marques`, href: `/vehicules/${typePath}` }
+          : { label: 'Voir toutes les marques', href: `/vehicules/${typePath}` },
     },
   ]
 }
@@ -185,7 +185,7 @@ export async function getNavigation(): Promise<NavSection[]> {
 
 /** Construit l'arborescence. Lève si la base ne répond pas. */
 async function construireNavigation(): Promise<NavSection[]> {
-  const [categories, comptes, marquesAuto, marquesMoto] = await Promise.all([
+  const [categories, comptes, marquesAuto, marquesUtilitaire, marquesCampingCar, marquesPoidsLourd] = await Promise.all([
     prisma.category.findMany({
       where: { published: true },
       orderBy: [{ position: 'asc' }, { name: 'asc' }],
@@ -213,7 +213,9 @@ async function construireNavigation(): Promise<NavSection[]> {
       GROUP BY pc."categoryId", p."bulbBase"
     `,
     lireMarques('CAR'),
-    lireMarques('MOTORCYCLE'),
+    lireMarques('VAN'),
+    lireMarques('MOTORHOME'),
+    lireMarques('TRUCK'),
   ])
 
   // Produits et culots, par catégorie directe.
@@ -291,21 +293,37 @@ async function construireNavigation(): Promise<NavSection[]> {
   */
   const parcours: NavSection[] = [
     {
-      key: 'packs-auto',
-      kicker: 'Packs par marque',
-      label: 'Auto & utilitaire',
-      href: '/packs/auto',
+      key: 'vehicules-auto',
+      kicker: 'Housses & tapis',
+      label: 'Auto',
+      href: '/vehicules/auto',
       highlight: true,
-      description: 'Les éclairages documentés pour votre voiture.',
+      description: 'Housses de siège et tapis fabriqués pour votre voiture.',
       columns: colonneMarques(marquesAuto, 'auto'),
     },
     {
-      key: 'packs-moto',
-      kicker: 'Packs par marque',
-      label: 'Moto, scooter & quad',
-      href: '/packs/moto',
-      description: 'Les éclairages documentés pour votre deux-roues.',
-      columns: colonneMarques(marquesMoto, 'moto'),
+      key: 'vehicules-utilitaire',
+      kicker: 'Housses & tapis',
+      label: 'Utilitaire',
+      href: '/vehicules/utilitaire',
+      description: 'Housses et tapis pour votre fourgon ou votre utilitaire.',
+      columns: colonneMarques(marquesUtilitaire, 'utilitaire'),
+    },
+    {
+      key: 'vehicules-camping-car',
+      kicker: 'Housses & tapis',
+      label: 'Camping-car',
+      href: '/vehicules/camping-car',
+      description: 'Housses de cabine et tapis pour votre camping-car.',
+      columns: colonneMarques(marquesCampingCar, 'camping-car'),
+    },
+    {
+      key: 'vehicules-poids-lourd',
+      kicker: 'Housses & tapis',
+      label: 'Poids lourd',
+      href: '/vehicules/poids-lourd',
+      description: 'Housses et tapis pour la cabine de votre camion.',
+      columns: colonneMarques(marquesPoidsLourd, 'poids-lourd'),
     },
   ].filter((section) => section.columns.length > 0)
 

@@ -33,7 +33,7 @@ describe('mesure d’audience : rien qui désigne quelqu’un', () => {
     expect(libelleSansDonneePerso('/commande', 'Continuer vers le paiement')).toBe('Continuer vers le paiement')
     expect(libelleSansDonneePerso('/commande', 'Colissimo 5,90 €')).toBe('Colissimo 5,90 €')
     // Sur le catalogue, les années des véhicules restent.
-    expect(libelleSansDonneePerso('/packs/auto/peugeot', 'Peugeot 208 (2012–2019)')).toBe(
+    expect(libelleSansDonneePerso('/vehicules/auto/peugeot', 'Peugeot 208 (2012–2019)')).toBe(
       'Peugeot 208 (2012–2019)',
     )
     expect(libelleSansDonneePerso('/', undefined)).toBeUndefined()

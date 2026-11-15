@@ -10,7 +10,7 @@ import {
   vehiclePackPath,
   type VehicleTypeValue,
 } from '@/lib/admin/vehicles'
-import { BrandMark } from '@/components/packs/BrandMark'
+import { BrandMark } from '@/components/vehicules/BrandMark'
 import { Alert, Card } from '@/components/ui/Surface'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -24,7 +24,7 @@ import { IconCar, IconMotorcycle } from '@/components/ui/icons'
  *
  * 1. **L'adresse publique est affichée partout, et son changement est une
  *    opération à part.** Renommer « Golf » ne déplace pas
- *    `/packs/auto/volkswagen/golf` ; le panneau « Changer l'adresse » le dit
+ *    `/vehicules/auto/volkswagen/golf` ; le panneau « Changer l'adresse » le dit
  *    et réclame une confirmation, parce qu'aucune redirection n'existe dans ce
  *    projet pour rattraper les anciens liens.
  * 2. **« Supprimer » n'apparaît que lorsque la suppression est sans perte.**
@@ -558,7 +558,9 @@ function ChampType({
       wrapperClassName="min-w-0 basis-[140px]"
     >
       <option value="CAR">{VEHICLE_TYPE_LABELS.CAR}</option>
-      <option value="MOTORCYCLE">{VEHICLE_TYPE_LABELS.MOTORCYCLE}</option>
+      <option value="VAN">{VEHICLE_TYPE_LABELS.VAN}</option>
+      <option value="MOTORHOME">{VEHICLE_TYPE_LABELS.MOTORHOME}</option>
+      <option value="TRUCK">{VEHICLE_TYPE_LABELS.TRUCK}</option>
       {includeBoth ? <option value="BOTH">{VEHICLE_TYPE_LABELS.BOTH}</option> : null}
     </SelectField>
   )
@@ -640,11 +642,7 @@ function BlocMarque({
           l'administrateur voit ici est exactement ce que le menu affichera.
         */}
         <BrandMark name={make.name} logo={make.logo} size="sm" />
-        {make.type === 'MOTORCYCLE' ? (
-          <IconMotorcycle className="size-4 shrink-0 text-muted-strong" />
-        ) : (
-          <IconCar className="size-4 shrink-0 text-muted-strong" />
-        )}
+        <IconCar className="size-4 shrink-0 text-muted-strong" />
         <span className="font-semibold">{make.name}</span>
         <span className="text-[11px] text-muted">{VEHICLE_TYPE_LABELS[make.type]}</span>
         <span className="text-[11px] text-muted">
@@ -665,13 +663,13 @@ function BlocMarque({
         {make.type === 'BOTH' ? (
           <Alert tone="warn" className="mb-3">
             Le type « voiture et moto » n&apos;est listé par aucun des deux parcours publics :
-            cette marque n&apos;apparaît ni dans /packs/auto, ni dans /packs/moto. Choisissez
+            cette marque n&apos;apparaît ni dans /vehicules/auto, ni dans /vehicules/moto. Choisissez
             voiture ou moto pour la rendre visible.
           </Alert>
         ) : make.active && modelesActifs === 0 ? (
           <Alert tone="warn" className="mb-3">
             Pas de modèle actif : cette marque n&apos;apparaît pas dans le menu ni dans{' '}
-            {makePath ? <code>/packs/{chemin}</code> : 'le parcours véhicule'}.
+            {makePath ? <code>/vehicules/{chemin}</code> : 'le parcours véhicule'}.
           </Alert>
         ) : null}
 
@@ -859,9 +857,9 @@ export function VehicleTree({
           </Button>
         </form>
         <p className="mt-2 text-[10px] leading-[1.7] text-muted">
-          Le type décide du parcours qui la listera : <code>/packs/auto</code> ou{' '}
-          <code>/packs/moto</code>. L&apos;adresse entre dans les URL publiques et ne change plus
-          d&apos;elle-même ensuite : <code>/packs/moto/yamaha</code>. Le logo se choisit parmi
+          Le type décide du parcours qui la listera : <code>/vehicules/auto</code> ou{' '}
+          <code>/vehicules/moto</code>. L&apos;adresse entre dans les URL publiques et ne change plus
+          d&apos;elle-même ensuite : <code>/vehicules/moto/yamaha</code>. Le logo se choisit parmi
           les visuels déposés dans{' '}
           <Link href="/admin/medias" className="font-semibold underline underline-offset-4">
             Médias

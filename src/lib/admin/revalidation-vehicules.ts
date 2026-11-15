@@ -2,7 +2,7 @@ import 'server-only'
 import { revalidatePath } from 'next/cache'
 import type { VehicleType } from '@prisma/client'
 import { prisma } from '../db'
-import { CHEMIN_PAR_TYPE } from '../queries/packs'
+import { CHEMIN_PAR_TYPE } from '../queries/vehicules'
 import { vehiclePackPath } from './vehicles'
 
 /**
@@ -39,13 +39,14 @@ export function revalidateVehicle(scope: {
   revalidatePath('/admin/vehicules')
   revalidatePath('/', 'layout')
 
-  // `BOTH` n'est listé par aucun des deux parcours ; on invalide les deux
-  // quand même, pour le cas où le type vient de changer dans un sens ou l'autre.
+  // Un type hors parcours (hérité) : on invalide les quatre parcours.
   const chemins =
-    scope.type === 'BOTH' ? ['auto', 'moto'] : [CHEMIN_PAR_TYPE[scope.type as 'CAR' | 'MOTORCYCLE']]
+    scope.type && scope.type in CHEMIN_PAR_TYPE
+      ? [CHEMIN_PAR_TYPE[scope.type as keyof typeof CHEMIN_PAR_TYPE]]
+      : Object.values(CHEMIN_PAR_TYPE)
 
   for (const chemin of chemins) {
-    revalidatePath(`/packs/${chemin}`)
+    revalidatePath(`/vehicules/${chemin}`)
     if (!scope.makeSlug) continue
     revalidatePath(vehiclePackPath(chemin, scope.makeSlug))
     if (!scope.modelSlug) continue

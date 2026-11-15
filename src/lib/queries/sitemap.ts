@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '../db'
-import { CHEMIN_PAR_TYPE } from './packs'
+import { CHEMIN_PAR_TYPE } from './vehicules'
 import { GENERATION_VISIBLE, MARQUE_VISIBLE, MODELE_VISIBLE } from './vehicules-visibles'
 
 /**
@@ -72,7 +72,7 @@ export async function listSitemapPacks(): Promise<SitemapEntry[]> {
   const generations = await prisma.vehicleGeneration.findMany({
     where: {
       ...GENERATION_VISIBLE,
-      model: { ...MODELE_VISIBLE, make: { ...MARQUE_VISIBLE, type: { in: ['CAR', 'MOTORCYCLE'] } } },
+      model: { ...MODELE_VISIBLE, make: { ...MARQUE_VISIBLE, type: { in: ['CAR', 'VAN', 'MOTORHOME', 'TRUCK'] } } },
     },
     select: {
       slug: true,
@@ -88,10 +88,10 @@ export async function listSitemapPacks(): Promise<SitemapEntry[]> {
 
   for (const generation of generations) {
     const { model } = generation
-    const type = CHEMIN_PAR_TYPE[model.make.type as 'CAR' | 'MOTORCYCLE']
-    const marque = `/packs/${type}/${model.make.slug}`
+    const type = CHEMIN_PAR_TYPE[model.make.type as keyof typeof CHEMIN_PAR_TYPE]
+    const marque = `/vehicules/${type}/${model.make.slug}`
     const modele = `${marque}/${model.slug}`
-    types.add(`/packs/${type}`)
+    types.add(`/vehicules/${type}`)
     marques.add(marque)
     generationsParModele.set(modele, (generationsParModele.get(modele) ?? 0) + 1)
     pages.push({ path: `${modele}/${generation.slug}`, lastModified: maintenant })

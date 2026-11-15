@@ -75,7 +75,7 @@ function erreur(contexte: string, cause: unknown): VehicleAdminState {
  * L'écran le dit sur les marques qui le portent déjà, au lieu de le corriger
  * dans leur dos.
  */
-const TYPES_CONNUS: VehicleType[] = ['CAR', 'MOTORCYCLE', 'BOTH']
+const TYPES_CONNUS: VehicleType[] = ['CAR', 'VAN', 'MOTORHOME', 'TRUCK', 'BOTH']
 
 function lireType(formData: FormData, autoriseBoth = true): VehicleType | null {
   const brut = champ(formData, 'type').toUpperCase()
@@ -191,13 +191,13 @@ async function créerMarque(staff: StaffUser, formData: FormData): Promise<Vehic
   if (!name) return { error: 'Le nom de la marque est obligatoire.' }
 
   const type = lireType(formData, false)
-  if (!type) return { error: 'Choisissez un type de véhicule : voiture ou moto.' }
+  if (!type) return { error: 'Choisissez un type de véhicule : auto, utilitaire, camping-car ou poids lourd.' }
 
   const slug = resolveSlug({ name, slug: champ(formData, 'slug') })
   if (!slug.ok) return { error: slug.error }
 
   try {
-    const existante = await prisma.vehicleMake.findUnique({ where: { slug: slug.value } })
+    const existante = await prisma.vehicleMake.findUnique({ where: { type_slug: { type, slug: slug.value } } })
     if (existante) {
       return {
         error: `L'adresse « ${slug.value} » est déjà prise par « ${existante.name} ». Choisissez-en une autre.`,
@@ -232,7 +232,7 @@ async function modifierMarque(staff: StaffUser, formData: FormData): Promise<Veh
   if (!id || !name) return { error: 'Demande invalide.' }
 
   const type = lireType(formData)
-  if (!type) return { error: 'Choisissez un type de véhicule : voiture ou moto.' }
+  if (!type) return { error: 'Choisissez un type de véhicule : auto, utilitaire, camping-car ou poids lourd.' }
 
   const positionBrute = champ(formData, 'position')
   const position = positionBrute === '' ? 0 : Number(positionBrute)
@@ -691,7 +691,7 @@ async function supprimerGénération(
  * Change le slug d'une marque, d'un modèle ou d'une génération.
  *
  * Une opération à part, et jamais un effet de bord d'un renommage : le slug
- * est dans les URL `/packs/...` que les clients ont pu enregistrer et que les
+ * est dans les URL `/vehicules/...` que les clients ont pu enregistrer et que les
  * moteurs ont indexées. Le formulaire exige une confirmation explicite, et
  * cette action la revérifie — la case cochée à l'écran ne protège rien.
  *
@@ -726,7 +726,7 @@ async function changerAdresse(
       if (!avant) return { error: 'Marque introuvable.' }
       if (avant.slug === slug) return { notice: "L'adresse est déjà celle-là." }
 
-      if (await prisma.vehicleMake.findUnique({ where: { slug } })) {
+      if (await prisma.vehicleMake.findUnique({ where: { type_slug: { type: avant.type, slug } } })) {
         return { error: `L'adresse « ${slug} » est déjà prise.` }
       }
 

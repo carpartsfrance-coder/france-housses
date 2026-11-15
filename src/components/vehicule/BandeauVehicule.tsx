@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { BrandMark } from '@/components/packs/BrandMark'
+import { BrandMark } from '@/components/vehicules/BrandMark'
 
 /**
  * Le bandeau d'ouverture d'une page véhicule, relevé sur la maquette.

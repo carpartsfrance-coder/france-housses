@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '../db'
-import { getPackGeneration } from './packs'
+import { getPackGeneration } from './vehicules'
 import { cartesDesPacks, sousTitreDeLEmplacement } from '../packs-vue'
 
 /**
@@ -90,7 +90,7 @@ export async function getPacksComplementaires(
 
     const { make, slug: modelSlug } = generation.model
     const lecture = await getPackGeneration(
-      make.type === 'MOTORCYCLE' ? 'MOTORCYCLE' : 'CAR',
+      make.type === 'VAN' || make.type === 'MOTORHOME' || make.type === 'TRUCK' ? make.type : 'CAR',
       make.slug,
       modelSlug,
       generation.slug,
