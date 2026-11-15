@@ -7,7 +7,8 @@ import { CHEMIN_DU_TYPE, lireAncienneAdresse } from '@/lib/anciennes-url'
  * Appelée uniquement par le proxy (réécriture), jamais par un lien.
  */
 export async function GET(request: NextRequest) {
-  const chemin = request.nextUrl.searchParams.get('chemin') ?? '/'
+  const chemin =
+    request.headers.get('x-ancienne-adresse') ?? request.nextUrl.searchParams.get('chemin') ?? '/'
   const [path, qs] = chemin.split('?')
   const ancienne = lireAncienneAdresse(path, new URLSearchParams(qs ?? ''))
   const vers = await destination(ancienne)

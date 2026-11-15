@@ -32,8 +32,12 @@ export function proxy(request: NextRequest) {
   if (!pathname.startsWith('/api/') && lireAncienneAdresse(pathname, request.nextUrl.searchParams)) {
     const cible = request.nextUrl.clone()
     cible.pathname = '/api/ancienne-url'
-    cible.search = `?chemin=${encodeURIComponent(pathname + search)}`
-    return NextResponse.rewrite(cible)
+    cible.search = ''
+    // L'adresse d'origine passe par un en-tête : la route réécrite ne voit
+    // pas toujours la chaîne de requête posée ici.
+    const entetes = new Headers(request.headers)
+    entetes.set('x-ancienne-adresse', pathname + search)
+    return NextResponse.rewrite(cible, { request: { headers: entetes } })
   }
 
   return NextResponse.next()
