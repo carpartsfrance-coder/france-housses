@@ -565,7 +565,7 @@ export default async function AdminProductPage({ params, searchParams }: PagePro
             <>
               <Bloc
                 titre="Identité du produit"
-                description="Nom, culot, teinte, type de véhicule : ce qui décide où le produit apparaît."
+                description="Nom, accroche, marque, type de véhicule : ce qui décide où le produit apparaît."
               >
                 <IdentiteForm
                   productId={product.id}

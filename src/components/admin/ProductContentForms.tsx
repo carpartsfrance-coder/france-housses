@@ -171,39 +171,16 @@ export function IdentiteForm({
           defaultValue={affichees.brand}
           maxLength={MARQUE_MAX}
         />
-        <TextField
-          id="bulbBase"
-          name="bulbBase"
-          label="Culot"
-          hint="H7, D1S, BA15S… Repris tel quel dans le menu et dans la recherche par culot : « h7 » et « H7 » y feraient deux entrées."
-          placeholder="H7"
-          defaultValue={affichees.bulbBase}
-          maxLength={CULOT_MAX}
-          /* Les culots s'écrivent en capitales partout ailleurs sur le site :
-             le champ le montre, et le serveur le garantit. */
-          className="uppercase"
-          autoCapitalize="characters"
-        />
-        <TextField
-          id="temperature"
-          name="temperature"
-          label="Température de couleur"
-          hint={`En kelvins, entre ${KELVIN_MIN} et ${KELVIN_MAX}. Vide si la teinte ne s’applique pas.`}
-          placeholder="6000"
-          /* Champ texte et non numérique : « 6 000 K » recopié d'une fiche
-             fournisseur est accepté, là où un champ numérique se viderait
-             en silence. */
-          type="text"
-          inputMode="numeric"
-          defaultValue={affichees.temperature}
-          maxLength={12}
-        />
+        {/* FRANCE HOUSSES : culot, teinte et niveau de montage ne concernent pas
+            les housses. Les champs restent transmis pour ne rien effacer. */}
+        <input type="hidden" name="bulbBase" value={affichees.bulbBase} />
+        <input type="hidden" name="temperature" value={affichees.temperature} />
         <SelectField
           key={`vehicleType-${affichees.vehicleType}`}
           id="vehicleType"
           name="vehicleType"
           label="Type de véhicule"
-          hint="Il décide des parcours où le produit apparaît : un produit « voiture » ne sort jamais dans un parcours moto."
+          hint="Il décide des parcours où le produit apparaît : un produit « utilitaire » ne sort pas dans le parcours auto."
           defaultValue={affichees.vehicleType}
           required
         >
@@ -215,25 +192,7 @@ export function IdentiteForm({
         </SelectField>
       </div>
 
-      <SelectField
-        key={`difficulty-${affichees.difficulty}`}
-        id="difficulty"
-        name="difficulty"
-        label="Niveau de montage"
-        defaultValue={affichees.difficulty}
-        wrapperClassName="mt-4 md:max-w-[calc(50%-0.5rem)]"
-        onChange={(event) => setNiveau(event.currentTarget.value)}
-        required
-      >
-        {DIFFICULTES.map((valeur) => (
-          <option key={valeur} value={valeur}>
-            {DIFFICULTE_LABELS[valeur]}
-          </option>
-        ))}
-      </SelectField>
-      <p className="mt-1.5 text-[10px] text-muted">
-        {DIFFICULTE_NOTES[isDifficulte(niveau) ? niveau : 'UNKNOWN']}
-      </p>
+      <input type="hidden" name="difficulty" value={niveau} />
 
       <Button type="submit" className="mt-4" disabled={pending}>
         {pending ? 'Enregistrement…' : 'Enregistrer'}
