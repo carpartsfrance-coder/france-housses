@@ -1,5 +1,5 @@
 {
-"generatedAt": "2026-11-15T03:35:37",
+"generatedAt": "2026-11-15T07:31:15",
 "source": "france-housses.fr (PrestaShop), aspiré le 15 novembre 2026",
 "categories": [
 {
@@ -20108,12 +20108,12 @@
 "legacyId": "103",
 "models": [
 {
-"name": "Porche",
-"slug": "porche",
+"name": "Cayenne",
+"slug": "cayenne",
 "generations": [
 {
-"name": "Porche Cayenne",
-"slug": "porche-cayenne-2002",
+"name": "Cayenne",
+"slug": "cayenne-2002",
 "yearFrom": 2002,
 "yearTo": 2010,
 "legacy": [
@@ -20122,8 +20122,8 @@
 "legacyName": "PORSCHE PORCHE CAYENNE (De 2002 à 2010)"
 },
 {
-"name": "Porche Cayenne",
-"slug": "porche-cayenne-2017",
+"name": "Cayenne",
+"slug": "cayenne-2017",
 "yearFrom": 2017,
 "yearTo": null,
 "legacy": [
@@ -20132,8 +20132,8 @@
 "legacyName": "PORSCHE PORCHE CAYENNE (De 2017 à aujourd'hui)"
 },
 {
-"name": "Porche Cayenne",
-"slug": "porche-cayenne-2010",
+"name": "Cayenne",
+"slug": "cayenne-2010",
 "yearFrom": 2010,
 "yearTo": 2017,
 "legacy": [
@@ -20142,8 +20142,8 @@
 "legacyName": "PORSCHE PORCHE CAYENNE (De 2010 à 2017)"
 },
 {
-"name": "Porche Cayenne Coupé",
-"slug": "porche-cayenne-coupe",
+"name": "Cayenne Coupé",
+"slug": "cayenne-coupe",
 "yearFrom": 0,
 "yearTo": null,
 "legacy": [
@@ -154872,8 +154872,8 @@
 [
 "CAR",
 "porsche",
-"porche",
-"porche-cayenne-2002"
+"cayenne",
+"cayenne-2002"
 ]
 ],
 "active": true
@@ -290113,8 +290113,8 @@
 [
 "CAR",
 "porsche",
-"porche",
-"porche-cayenne-2002"
+"cayenne",
+"cayenne-2002"
 ]
 ],
 "active": true
@@ -290294,8 +290294,8 @@
 [
 "CAR",
 "porsche",
-"porche",
-"porche-cayenne-2002"
+"cayenne",
+"cayenne-2002"
 ]
 ],
 "active": true
