@@ -1,0 +1,236 @@
+import Link from 'next/link'
+import { Logo } from '@/components/brand/Logo'
+import { dureeGarantie, formatPrice, identity, siteConfig, promesseRetour } from '@/lib/identity'
+import { getCartSummary, getSelectedVehicle } from '@/lib/session'
+import { getSeuilLivraisonOfferte } from '@/lib/shipping'
+import { topNav } from '@/lib/navigation'
+import { getNavigation } from '@/lib/queries/navigation'
+import { MainNav } from './MainNav'
+import { IconUser, IconHeadset, IconReturn, IconShield, IconTruck } from '@/components/ui/icons'
+import { HeaderSearch } from './HeaderSearch'
+import { VehicleMenu } from './VehicleMenu'
+import { CartLink } from './CartLink'
+import { MobileNav } from './MobileNav'
+import { HeaderShell } from './HeaderShell'
+import { BoutonRecherche } from './BoutonRecherche'
+
+/**
+ * Header commun à toutes les pages — composition de 03-header-final.png.
+ *
+ * Trois étages sur ordinateur : bandeau de réassurance, ligne principale
+ * (logo, recherche, véhicule, panier) et navigation par catégories. Sur
+ * mobile, la ligne principale se réduit à menu / logo / panier, la recherche
+ * passe sur sa propre ligne et le véhicule occupe un bandeau dédié : ce n'est
+ * pas la version ordinateur rétrécie.
+ *
+ * **Hauteurs.** Le header est collant : tout ce qu'il occupe est retiré à la
+ * page pendant toute la lecture. Il tient donc en ~160 px à l'arrivée, et se
+ * replie à ~104 px dès qu'on défile — le bandeau de réassurance s'efface, la
+ * ligne principale et la navigation se resserrent. Rien ne disparaît qui ne
+ * soit retrouvable : sur mobile, le bandeau véhicule replié reste accessible
+ * par le menu, et la recherche ne se replie jamais.
+ *
+ * Le repli est piloté par `HeaderShell`, qui pose `data-scrolled` sur le
+ * `<header>`. Chaque étage réagit par `group-data-scrolled/header:`.
+ *
+ * Le véhicule et le compteur de panier viennent de la session réelle
+ * (cookie + base). Aucun des deux n'est décoratif.
+ */
+export async function Header() {
+  const [vehicle, cart, sections, seuilLivraisonOfferte] = await Promise.all([
+    getSelectedVehicle(),
+    getCartSummary(),
+    // L'arborescence vient du catalogue : le menu ne peut pas promettre une
+    // famille, une marque ou un culot que la base n'a pas.
+    getNavigation(),
+    // Seuil réglé dans le back-office (page « Livraison »), pas une constante.
+    getSeuilLivraisonOfferte(),
+  ])
+
+  return (
+    <HeaderShell>
+      {/* ---------------- Bandeau de réassurance ----------------
+          Il s'efface au défilement : c'est une information d'accueil, pas un
+          outil de navigation. Ce qu'il annonce se retrouve en pied de page et
+          dans le panier. */}
+      <div
+        className={
+          /* .utility-bar : 29 px (26 sous 800 px), fond #202326, texte 10 px. */
+          'overflow-hidden bg-[#202326] text-[#d4d9db] transition-[height] duration-200 motion-reduce:transition-none ' +
+          'h-[26px] md:h-[29px] group-data-scrolled/header:h-0'
+        }
+      >
+        <div className="container-page flex h-[26px] items-center justify-between gap-5 text-[9px] md:h-[29px] md:text-[10px]">
+          <div className="flex min-w-0 items-center gap-4">
+            <p className="flex min-w-0 items-center gap-2">
+              <IconTruck className="size-[13px] shrink-0 md:size-[14px]" strokeWidth={1.4} />
+              <span className="truncate">
+                {seuilLivraisonOfferte
+                  ? `Livraison offerte dès ${formatPrice(seuilLivraisonOfferte)}`
+                  : 'Livraison et retours'}
+              </span>
+            </p>
+            {/* La garantie, deuxième argument de confiance après la livraison. */}
+            {dureeGarantie() ? (
+              <Link
+                href="/garanties"
+                className="flex min-w-0 items-center gap-2 transition-colors hover:text-white"
+              >
+                <span aria-hidden className="text-white/25">|</span>
+                <IconShield className="size-[13px] shrink-0 md:size-[14px]" strokeWidth={1.4} />
+                <span className="truncate">Garantie {dureeGarantie()}</span>
+              </Link>
+            ) : null}
+            {/* Satisfait ou remboursé : mis en avant (décision de l'exploitant, 9 novembre 2026). */}
+            {promesseRetour() ? (
+              <Link
+                href="/livraison-retours#retours"
+                className="hidden min-w-0 items-center gap-2 transition-colors hover:text-white sm:flex"
+              >
+                <span aria-hidden className="text-white/25">|</span>
+                <IconReturn className="size-[13px] shrink-0 md:size-[14px]" strokeWidth={1.4} />
+                <span className="truncate font-semibold text-white">{promesseRetour()}</span>
+              </Link>
+            ) : null}
+          </div>
+
+          {siteConfig.demoBanner ? (
+            <p className="hidden text-[8px] tracking-[0.5px] text-[#8e999f] uppercase lg:block">
+              {siteConfig.demoBannerLabel}
+            </p>
+          ) : null}
+
+          <nav
+            aria-label="Informations pratiques"
+            className="hidden items-center gap-4 text-[9px] text-[#c3c9cc] md:flex lg:gap-6"
+          >
+            {topNav.map((item, index) => (
+              <span key={item.href} className="flex items-center gap-4">
+                {index > 0 ? <span aria-hidden className="text-white/25">|</span> : null}
+                <Link
+                  href={item.href}
+                  className="flex items-center gap-[7px] rounded-xs transition-colors hover:text-white"
+                >
+                  {item.icon === 'return' ? (
+                    <IconReturn className="size-[14px] shrink-0" strokeWidth={1.4} />
+                  ) : (
+                    <IconHeadset className="size-[14px] shrink-0" strokeWidth={1.4} />
+                  )}
+                  {item.label}
+                </Link>
+              </span>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      {/* ---------------- Ligne principale ---------------- */}
+      <div className="border-b border-[#e7e7e7]">
+        <div
+          className={
+            /* .shop-header-main : 89 px et 36 px d'écart (43 au-delà de 1450 px). */
+            'container-page flex items-center gap-3 transition-[height] duration-200 motion-reduce:transition-none ' +
+            'h-[52px] lg:h-[89px] lg:gap-9 group-data-scrolled/header:lg:h-[64px]'
+          }
+        >
+          <MobileNav vehicle={vehicle} sections={sections} />
+
+          {/* Le logotype se resserre au défilement, sans jamais devenir illisible. */}
+          <Logo priority height={34} className="shrink-0 transition-transform duration-200 motion-reduce:transition-none group-data-scrolled/header:lg:origin-left group-data-scrolled/header:lg:scale-90" />
+
+          {/* La grande recherche n'apparaît en ligne qu'à partir de lg. */}
+          {/* .header-search : flex 1, plafonné à 550 px au-delà de 1450 px. */}
+          <div className="ml-auto hidden flex-1 lg:ml-0 lg:block xl:max-w-[550px] lg:[body:has([data-tunnel])_&]:hidden">
+            <HeaderSearch />
+          </div>
+
+          <div className="ml-auto flex items-center gap-1 lg:gap-0">
+            <div className="hidden lg:block lg:[body:has([data-tunnel])_&]:hidden">
+              <VehicleMenu vehicle={vehicle} />
+            </div>
+            {/* .header-cart-link : filet à gauche, 24 px de retrait. */}
+            <span aria-hidden className="mx-5 hidden h-8 w-px bg-[#e0e0e0] lg:block" />
+            {/*
+              « Mon compte », repris de la maquette. Il mène à `/compte`, qui
+              existe réellement — commandes, adresses, profil, véhicules — et
+              non à une page à faire.
+            */}
+            <Link
+              href="/compte"
+              className="touch-cible hidden min-h-[38px] items-center gap-[9px] rounded-sm px-1 transition-colors hover:text-brand lg:flex"
+            >
+              <IconUser className="size-[25px] shrink-0 text-[#343434]" strokeWidth={1.45} />
+              <span className="hidden text-[11px] font-semibold text-[#3f3f3f] xl:block">
+                Mon compte
+              </span>
+            </Link>
+            <span aria-hidden className="mx-5 hidden h-8 w-px bg-[#e0e0e0] lg:block" />
+            {/* Mobile, page défilée : la loupe remplace la barre de recherche. */}
+            <div className="lg:hidden [body:has([data-tunnel])_&]:hidden">
+              <BoutonRecherche cible="recherche-mobile" />
+            </div>
+            <CartLink itemCount={cart.itemCount} />
+          </div>
+        </div>
+
+        {/* Recherche pleine largeur sous la ligne principale, mobile et tablette.
+            Affichée à l'arrivée ; repliée au défilement, où la loupe de la
+            ligne principale la rouvre d'un appui (BoutonRecherche). Le header
+            collant ne garde ainsi que la ligne du logo pendant la lecture. */}
+        <div
+          id="recherche-mobile"
+          className="container-page pb-2.5 lg:hidden [body:has([data-tunnel])_&]:hidden [header[data-scrolled]:not([data-recherche])_&]:h-0 [header[data-scrolled]:not([data-recherche])_&]:overflow-hidden [header[data-scrolled]:not([data-recherche])_&]:pb-0"
+        >
+          <HeaderSearch compact />
+        </div>
+      </div>
+
+      {/* ---------------- Véhicule, bandeau mobile ----------------
+          Absent des fiches faites pour un véhicule précis (repère
+          `data-fiche-vehicule`) : le titre porte déjà le véhicule.
+          Replié au défilement : le véhicule retenu reste rappelé sur les pages
+          qui en dépendent (fiche, panier, résultats) et reste modifiable
+          depuis le menu. */}
+      <div
+        className={
+          'overflow-hidden border-b border-line bg-[#f6f6f6] transition-[height] duration-200 motion-reduce:transition-none lg:hidden [body:has([data-fiche-vehicule])_&]:hidden [body:has([data-tunnel])_&]:hidden ' +
+          'h-9 group-data-scrolled/header:h-0 group-data-scrolled/header:border-b-0'
+        }
+      >
+        <div className="container-page flex h-9 items-center">
+          <VehicleMenu vehicle={vehicle} variant="bar" />
+        </div>
+      </div>
+
+      {/* ---------------- Navigation ----------------
+          Recherche, véhicule et rayons sont masqués pendant la commande
+          (repère `data-tunnel`) : au moment de payer, ils ne servent qu'à
+          sortir du tunnel. Le logo et le panier restent. */}
+      <nav aria-label="Catégories" className="hidden border-t border-[#eeeeee] lg:block lg:[body:has([data-tunnel])_&]:hidden">
+        <div
+          className={
+            /* .shop-category-inner : 46 px, items à 12 px, écart de 28 px. */
+            'container-page flex items-center justify-between transition-[height] duration-200 motion-reduce:transition-none ' +
+            'h-[46px] group-data-scrolled/header:h-10'
+          }
+        >
+          <MainNav sections={sections} />
+
+          <Link
+            href="/guides"
+            /* .header-nav-help : 10 px, couleur #808080. */
+            className="flex shrink-0 items-center gap-2 text-[10px] whitespace-nowrap text-[#808080] transition-colors hover:text-[#343434]"
+          >
+            <IconHeadset className="size-4 shrink-0" strokeWidth={1.5} />
+            Conseils &amp; montage
+          </Link>
+        </div>
+      </nav>
+
+      <span className="sr-only" aria-live="polite">
+        {vehicle ? `Véhicule sélectionné : ${vehicle.label}` : 'Aucun véhicule sélectionné'}
+      </span>
+      <span className="sr-only">{identity.name}</span>
+    </HeaderShell>
+  )
+}

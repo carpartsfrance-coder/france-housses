@@ -1,0 +1,305 @@
+# ============================================================================
+# LUMERA — plan d'infrastructure Render
+#
+# Trois ressources, pas davantage :
+#   1. lumera-db   : PostgreSQL géré (catalogue, véhicules, commandes, SAV)
+#   2. lumera-web  : l'application (site public + back-office + API + webhooks)
+#   3. lumera-jobs : un cron qui dépile la table JobQueue (imports, e-mails,
+#                    relances). Pas de Redis, pas de service worker séparé :
+#                    la file vit dans PostgreSQL, ce qui évite un quatrième
+#                    service à payer et à surveiller.
+#
+# Les médias (photos produits, guides, factures, pièces jointes SAV) ne sont
+# PAS stockés sur le disque de l'instance : il est éphémère et chaque déploiement
+# le remet à zéro. Ils vont dans un stockage objet S3-compatible — voir les
+# variables MEDIA_* ci-dessous et docs/render.md.
+#
+# Déploiement : connecter ce dépôt à Render, « New + › Blueprint », pointer sur
+# render.yaml. Les variables marquées `sync: false` sont à renseigner à la main
+# dans le tableau de bord, elles ne transitent jamais par le dépôt.
+# ============================================================================
+
+databases:
+  - name: lumera-db
+    databaseName: lumera
+    user: lumera
+    # 0.5 CPU, 1 Go (passée le 8 novembre 2026) : avec 30 000 fiches, l'offre
+    # 256 Mo ne gardait pas les données en mémoire et lisait sans cesse un
+    # disque lent (recherche de 3 à 50 s). Garder ce plan aligné sur celui
+    # du tableau de bord : une synchronisation du Blueprint le réappliquerait.
+    plan: 0.5c-1g
+    region: frankfurt
+    ipAllowList: [] # accès réseau interne Render uniquement
+
+services:
+  # --------------------------------------------------------------------------
+  # Application web
+  # --------------------------------------------------------------------------
+  - type: web
+    name: lumera-web
+    runtime: node
+    # 1 CPU, 2 Go (passée le 14 novembre 2026). Sous l'offre starter (512 Mo),
+    # la mémoire montait sans jamais redescendre pendant le passage de
+    # Googlebot : les fiches produit lisent les cookies, donc Next les rend à
+    # chaque visite sans les mettre en cache, et le robot en demande des
+    # centaines par heure. Au bout de deux jours l'instance touchait les
+    # 512 Mo et Render tuait le processus. Le 14 novembre à 02h30, le site a
+    # renvoyé des 502 pendant deux minutes ; Google Merchant Center a refusé
+    # 68 produits pour « page du produit non disponible ».
+    # Garder ce plan aligné sur celui du tableau de bord : une synchronisation
+    # du Blueprint le réappliquerait.
+    plan: 1c-2g
+    region: frankfurt
+    branch: main
+    # `prisma migrate deploy` applique les migrations déjà écrites et versionnées.
+    # Il n'en génère aucune : une migration non committée ne partira jamais en
+    # production par accident.
+    # `--include=dev` n'est pas un confort : NODE_ENV vaut `production` ci-dessous,
+    # et `npm ci` retire alors les dépendances de développement — 66 paquets, dont
+    # `prisma`, `typescript` et `tailwindcss`. Les trois servent précisément à
+    # cette ligne : `prisma migrate deploy`, puis `prisma generate && next build`.
+    # Sans le drapeau, la construction échoue avant le premier déploiement.
+    #
+    # On garde NODE_ENV=production plutôt que de le retirer : le code s'en sert
+    # pour refuser le stockage local et une clé de paiement de test. Ce garde-fou
+    # ne doit pas dépendre de ce que `next start` positionne tout seul.
+    buildCommand: npm ci --include=dev && npx prisma migrate deploy && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: '22'
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lumera-db
+          property: connectionString
+
+      # --- Identité publique -------------------------------------------------
+      # À remplacer par le domaine définitif dès qu'il est rattaché.
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+      # « off » : la boutique est ouverte (bandeau de préproduction retiré,
+      # site indexable, flux Google Shopping actif). Valeur tenue ICI : une
+      # synchronisation du Blueprint écrase celle du tableau de bord — le
+      # 8 novembre 2026, un « on » resté dans ce fichier a remis le site en
+      # préproduction (noindex, robots.txt fermé, flux en 404).
+      - key: NEXT_PUBLIC_DEMO_MODE
+        value: 'off'
+
+      # --- Sessions ----------------------------------------------------------
+      # Aucun secret de signature : le cookie de session porte un jeton
+      # aléatoire de 32 octets dont la base ne garde que le condensé SHA-256
+      # (src/lib/auth/session.ts). Il n'y a donc rien à signer, et pas de
+      # variable à faire tourner.
+      #
+      # Coût du hachage des mots de passe (scrypt, 2^N). 15 par défaut, ajusté
+      # à une instance de 512 Mo ; à relever avec l'offre.
+      # Voir src/lib/auth/password.ts.
+      - key: AUTH_SCRYPT_LOG_N
+        value: '15'
+
+      # --- Stockage des médias (S3-compatible) -------------------------------
+      # Cloudflare R2, Backblaze B2 ou AWS S3 — voir docs/render.md.
+      - key: MEDIA_DRIVER
+        value: s3
+      - key: MEDIA_ENDPOINT
+        sync: false
+      - key: MEDIA_REGION
+        sync: false
+      - key: MEDIA_BUCKET
+        sync: false
+      - key: MEDIA_ACCESS_KEY_ID
+        sync: false
+      - key: MEDIA_SECRET_ACCESS_KEY
+        sync: false
+      # Domaine public du bucket, utilisé par next/image.
+      - key: MEDIA_PUBLIC_HOST
+        sync: false
+
+      # --- Paiement ----------------------------------------------------------
+      # Deux prestataires possibles ; ne renseigner que la clé de celui qui est
+      # utilisé. Si les deux sont présentes, l'application refuse de choisir et
+      # réclame PAYMENT_PROVIDER — choisir en silence, ce serait risquer
+      # d'encaisser chez l'un pendant qu'on surveille l'autre.
+      #
+      # Le mode test se déduit de la clé (test_… / live_… chez Mollie,
+      # sk_test_… / sk_live_… chez Stripe) : passer en production est une
+      # décision explicite, pas un effet de bord du déploiement. Aucune clé fait
+      # échouer l'ouverture du paiement en production — le paiement simulé y est
+      # refusé.
+      #
+      # Mollie ne signe pas ses webhooks : il POSTe l'identifiant du paiement et
+      # c'est la relecture par l'API, avec la clé ci-dessous, qui fait foi. Il
+      # n'y a donc pas de secret de webhook Mollie à définir. En revanche
+      # NEXT_PUBLIC_SITE_URL doit être l'URL publique EXACTE : Mollie construit
+      # l'URL de webhook dessus, et une redirection 301 ou 302 (http→https,
+      # www→apex, barre oblique finale) transformerait son POST en GET et
+      # perdrait la notification.
+      - key: MOLLIE_API_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      # Secret de signature du webhook Stripe. Sans lui, /api/paiement/webhook
+      # refuse tous les appels Stripe.
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      # À renseigner UNIQUEMENT si les deux clés ci-dessus le sont.
+      # Valeurs acceptées : mollie, stripe.
+      - key: PAYMENT_PROVIDER
+        sync: false
+
+      # --- E-mails transactionnels -------------------------------------------
+      # Prestataire : MailerSend. Le pilote est déclaré ici plutôt que dans le
+      # tableau de bord parce qu'il porte `value:` et non `sync: false` — une
+      # valeur modifiée à la main serait écrasée à la prochaine synchronisation
+      # du blueprint. Changer de prestataire est donc un commit, ce qui est
+      # cohérent : c'est une décision, pas un réglage.
+      #
+      # **Rien ne part tant que EMAIL_API_KEY et EMAIL_FROM sont vides.**
+      # `emailIsSimulated()` traite un pilote sans clé ni expéditeur comme une
+      # simulation, l'écrit dans EmailLog et le dit dans les journaux. Le jour
+      # où les deux variables sont renseignées, les envois deviennent réels
+      # sans autre manipulation — c'est voulu, et c'est pour cela que le
+      # domaine doit être authentifié AVANT (SPF, DKIM, DMARC) : un envoi
+      # depuis un domaine non authentifié part en indésirable et abîme sa
+      # réputation durablement.
+      - key: EMAIL_DRIVER
+        value: mailersend
+      - key: EMAIL_FROM
+        sync: false
+      - key: EMAIL_API_KEY
+        sync: false
+
+      # --- Travaux de fond ---------------------------------------------------
+      # Partagé avec le cron : protège /api/jobs/run contre un appel public.
+      - key: JOB_RUNNER_TOKEN
+        generateValue: true
+
+  # --------------------------------------------------------------------------
+  # Dépilage de la file de travaux
+  # --------------------------------------------------------------------------
+  - type: cron
+    name: lumera-jobs
+    runtime: node
+    plan: starter
+    region: frankfurt
+    branch: main
+    # Toutes les 10 minutes : suffisant pour les imports et les relances,
+    # sans facturer une instance qui tourne en permanence.
+    schedule: '*/10 * * * *'
+    # Même raison que pour le service web, avec un enjeu de plus : `tsx` est une
+    # dépendance de développement et c'est lui qui EXÉCUTE le script ci-dessous.
+    # S'il manque, le cron ne dépile plus rien — donc plus d'e-mail envoyé, plus
+    # d'import traité — et un cron qui ne trouve pas son interpréteur échoue
+    # sans que le site, lui, ne montre quoi que ce soit.
+    buildCommand: npm ci --include=dev && npx prisma generate
+    # `--conditions=react-server` n'est pas un détail : sans lui, le cron ne
+    # fait RIEN depuis sa mise en service, et le dit à peine.
+    #
+    # Les modules métier commencent par `import 'server-only'`, un garde-fou
+    # qui empêche de les embarquer par erreur dans un composant client. Sous
+    # Next, ce paquet se résout vers un module vide ; sous `tsx`, il se résout
+    # vers celui qui LÈVE. Chaque passage du cron échouait donc à l'import,
+    # était rattrapé par son `try`, et laissait une ligne de journal au milieu
+    # des autres : « rattrapage des commandes en attente impossible ».
+    #
+    # Ce que ça emportait : les commandes impayées n'expiraient jamais — leur
+    # stock restait réservé indéfiniment — et le filet de rattrapage des
+    # webhooks Mollie perdus ne ramassait rien. Le drapeau rend au cron la
+    # résolution que Next lui donne.
+    startCommand: npx tsx --conditions=react-server scripts/run-jobs.ts
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lumera-db
+          property: connectionString
+      # Indispensable : le cron est ce qui envoie réellement les e-mails, et
+      # chaque lien d'un e-mail est construit depuis cette valeur. Absente, la
+      # valeur de repli est http://localhost:3400 — les liens de suivi et de
+      # réinitialisation partiraient inutilisables, sans aucune erreur.
+      - key: NEXT_PUBLIC_SITE_URL
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: NEXT_PUBLIC_SITE_URL
+      - key: EMAIL_DRIVER
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: EMAIL_DRIVER
+      - key: EMAIL_FROM
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: EMAIL_FROM
+      - key: EMAIL_API_KEY
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: EMAIL_API_KEY
+      - key: MEDIA_DRIVER
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: MEDIA_DRIVER
+      - key: MEDIA_BUCKET
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: MEDIA_BUCKET
+      - key: MEDIA_ENDPOINT
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: MEDIA_ENDPOINT
+      - key: MEDIA_REGION
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: MEDIA_REGION
+      - key: MEDIA_ACCESS_KEY_ID
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: MEDIA_ACCESS_KEY_ID
+      - key: MEDIA_SECRET_ACCESS_KEY
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: MEDIA_SECRET_ACCESS_KEY
+      - key: MEDIA_PUBLIC_HOST
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: MEDIA_PUBLIC_HOST
+      # Indispensable : à chaque passage, le cron interroge le prestataire au
+      # sujet des commandes restées en attente, et applique l'issue. C'est le
+      # filet de rattrapage des webhooks perdus — Mollie cesse de rappeler au
+      # bout de 26 heures et ne permet pas de redéclencher un appel. Sans ces
+      # clés, le cron ne peut rien demander et se contenterait d'expirer des
+      # commandes peut-être payées.
+      - key: MOLLIE_API_KEY
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: MOLLIE_API_KEY
+      - key: STRIPE_SECRET_KEY
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: STRIPE_SECRET_KEY
+      - key: PAYMENT_PROVIDER
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: PAYMENT_PROVIDER
+      - key: JOB_RUNNER_TOKEN
+        fromService:
+          type: web
+          name: lumera-web
+          envVarKey: JOB_RUNNER_TOKEN

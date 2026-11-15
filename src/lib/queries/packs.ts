@@ -1,0 +1,515 @@
+import 'server-only'
+import { nomDeLEmplacement } from '../packs-vue'
+import { prisma } from '../db'
+import { lectureCatalogueAvecRepli } from '../cache-catalogue'
+import { recommendPackaging } from '../recommendation'
+import { availabilityForKit, availabilityForVariant, isPurchasable } from '../stock'
+import type { FitmentStatus } from '../fitment'
+import { ARGS_COUVERTURE, couverture } from '../media-couverture'
+import { couvertureType } from '../images-types'
+import { GENERATION_VISIBLE, MARQUE_VISIBLE, MODELE_VISIBLE } from './vehicules-visibles'
+
+/**
+ * Parcours « packs par véhicule » : marque → modèle → génération → éclairages.
+ *
+ * Ce parcours ne confirme rien de lui-même. Consulter la page d'une
+ * génération dit ce qui est **documenté** pour elle, pas ce qui conviendra au
+ * véhicule du client : une génération vendue en halogène et en xénon n'accepte
+ * pas les mêmes pièces, et c'est la configuration — génération + équipement
+ * d'origine — qui tranche. La page le dit, et renvoie vers l'étape
+ * d'équipement quand la génération en compte plusieurs.
+ *
+ * Le type de véhicule n'est pas une liste fermée : `vehicleTypePath` traduit
+ * les deux chemins publics aujourd'hui servis, et la lecture reste valable
+ * pour tout type que le catalogue viendrait à proposer.
+ */
+
+export type PackVehicleType = 'CAR' | 'MOTORCYCLE'
+
+/** `auto` et `moto` dans les URL ; `CAR` et `MOTORCYCLE` en base. */
+export const TYPE_PAR_CHEMIN: Record<string, PackVehicleType> = {
+  auto: 'CAR',
+  moto: 'MOTORCYCLE',
+}
+
+export const CHEMIN_PAR_TYPE: Record<PackVehicleType, string> = {
+  CAR: 'auto',
+  MOTORCYCLE: 'moto',
+}
+
+export const LIBELLE_PAR_CHEMIN: Record<string, { court: string; long: string }> = {
+  auto: { court: 'Auto & Utilitaires', long: 'Packs Auto & Utilitaires' },
+  moto: { court: 'Moto & Scooter', long: 'Packs Moto & Scooter' },
+}
+
+export type PackMake = {
+  slug: string
+  name: string
+  /** Modèles visibles : ce que la page de la marque ouvrira, et rien de plus. */
+  modelCount: number
+  /**
+   * Logo rattaché à la marque, s'il y en a un.
+   *
+   * Aucun n'est livré avec le projet : un logo de constructeur est une marque
+   * déposée, et c'est à l'exploitant de téléverser ceux qu'il peut afficher.
+   * Sans logo, l'affichage pose un monogramme.
+   */
+  logo: { url: string; alt: string } | null
+}
+
+export type PackModel = {
+  slug: string
+  name: string
+  generations: Array<{
+    slug: string
+    name: string
+    /** « 2012–2016 » ou « depuis 2020 ». */
+    years: string
+    phase: string | null
+    /** Configurations documentées (équipements d'origine distincts). */
+    configurationCount: number
+    /** Vrai dès qu'au moins une compatibilité est enregistrée. */
+    hasFitments: boolean
+    /**
+     * Visuel de la génération. Facultatif, et purement d'aide à la
+     * reconnaissance : le nom et les millésimes identifient le véhicule.
+     */
+    photo: { url: string; alt: string } | null
+  }>
+}
+
+/**
+ * Issue d'une lecture du référentiel véhicule : trois cas, et non deux.
+ *
+ * `absent` est une absence constatée — rien de ce nom au référentiel.
+ * `unavailable` est une lecture qui n'a pas abouti, et dont on ne peut rien
+ * conclure : ni que le véhicule existe, ni qu'il n'existe pas.
+ *
+ * Les deux rendaient `null`, que les pages traduisaient par un `notFound()`.
+ * Une base injoignable affirmait donc au client que sa marque, son modèle ou
+ * sa génération n'était pas référencé, alors que personne n'avait pu le
+ * constater. Le tag ne force pas l'exhaustivité, mais il nomme les cas :
+ * confondre la panne et l'absence devient un choix écrit, et non l'effet d'un
+ * `null` qui voulait dire les deux.
+ */
+export type PackLookup<T> =
+  | { state: 'found'; data: T }
+  | { state: 'absent' }
+  | { state: 'unavailable' }
+
+/** Une marque et ses modèles, tels que la page de la marque les affiche. */
+export type PackMakeDetail = {
+  name: string
+  models: PackModel[]
+}
+
+/** « 2012–2016 » ou « depuis 2020 » — même formulation partout. */
+export function yearsLabel(yearFrom: number, yearTo: number | null): string {
+  return yearTo ? `${yearFrom}–${yearTo}` : `depuis ${yearFrom}`
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Marques d'un type donné qui mènent à au moins un produit en ligne.
+ *
+ * Le filtre est calculé, jamais listé — voir `vehicules-visibles.ts`. Une
+ * marque dont les fiches repassent en ligne réapparaît d'elle-même.
+ *
+ * Renvoie `null` si la lecture échoue — et c'est tout l'intérêt de la
+ * distinction. Cette fonction rendait `[]` dans les deux cas, si bien qu'une
+ * base injoignable affichait « Aucune marque auto & utilitaires n'est encore
+ * référencée » à un client dont le véhicule était, lui, bien au catalogue.
+ * Une panne de lecture n'est pas un catalogue vide, et l'écrire revenait à
+ * affirmer une absence qu'on n'avait pas constatée.
+ */
+/*
+  Les pages du parcours véhicule (marques, modèles, générations) ne dépendent
+  pas du visiteur : leurs lectures passent par le cache partagé du catalogue
+  (lib/cache-catalogue.ts). Le filtre de visibilité y descend jusqu'aux
+  compatibilités de chaque génération, et chaque page vue le rejouait. Une
+  lecture en échec (`null`, `unavailable`) n'est jamais gardée.
+*/
+export const listPackMakes = lectureCatalogueAvecRepli(
+  'packs-marques-v1',
+  lireMarquesDesPacks,
+  (resultat) => resultat === null,
+)
+
+export const getPackMake = lectureCatalogueAvecRepli(
+  'packs-marque-v1',
+  lireMarqueDesPacks,
+  (resultat) => resultat.state === 'unavailable',
+)
+
+export const getPackGeneration = lectureCatalogueAvecRepli(
+  'packs-generation-v2',
+  lireGenerationDesPacks,
+  (resultat) => resultat.state === 'unavailable',
+)
+
+async function lireMarquesDesPacks(type: PackVehicleType): Promise<PackMake[] | null> {
+  try {
+    const makes = await prisma.vehicleMake.findMany({
+      where: { type, ...MARQUE_VISIBLE },
+      orderBy: [{ position: 'asc' }, { name: 'asc' }],
+      include: {
+        _count: { select: { models: { where: MODELE_VISIBLE } } },
+        // Relation en `SET NULL` : supprimer un média détache le logo, il ne
+        // fait pas disparaître la marque, et l'affichage reprend le monogramme.
+        logo: { select: { url: true, alt: true } },
+      },
+    })
+
+    return makes.map((make) => ({
+      slug: make.slug,
+      name: make.name,
+      modelCount: make._count.models,
+      logo: make.logo ? { url: make.logo.url, alt: make.logo.alt ?? make.name } : null,
+    }))
+  } catch (error) {
+    console.error('[packs] marques indisponibles', error)
+    return null
+  }
+}
+
+/**
+ * Une marque et ses modèles, avec les générations de chacun.
+ *
+ * `absent` quand la marque n'est pas au référentiel, `unavailable` quand la
+ * lecture échoue : la page n'a pas de quoi les confondre.
+ */
+async function lireMarqueDesPacks(
+  type: PackVehicleType,
+  slug: string,
+): Promise<PackLookup<PackMakeDetail>> {
+  try {
+    const make = await prisma.vehicleMake.findFirst({
+      where: { slug, type, ...MARQUE_VISIBLE },
+      include: {
+        models: {
+          where: MODELE_VISIBLE,
+          orderBy: { name: 'asc' },
+          include: {
+            generations: {
+              where: GENERATION_VISIBLE,
+              orderBy: { yearFrom: 'asc' },
+              include: {
+                _count: { select: { configurations: { where: { active: true } } } },
+                configurations: {
+                  where: { active: true },
+                  select: { _count: { select: { fitments: true } } },
+                },
+                // En « SET NULL » : supprimer un média détache le visuel sans
+                // emporter la génération, et la ligne s'affiche sans vignette.
+                photo: { select: { url: true, alt: true } },
+              },
+            },
+          },
+        },
+      },
+    })
+    if (!make) return { state: 'absent' }
+
+    return {
+      state: 'found',
+      data: {
+        name: make.name,
+        models: make.models
+          .map((model) => ({
+            slug: model.slug,
+            name: model.name,
+            generations: model.generations.map((generation) => ({
+              slug: generation.slug,
+              name: generation.name,
+              years: yearsLabel(generation.yearFrom, generation.yearTo),
+              phase: generation.phase,
+              configurationCount: generation._count.configurations,
+              hasFitments: generation.configurations.some((config) => config._count.fitments > 0),
+              photo: generation.photo
+                ? { url: generation.photo.url, alt: generation.photo.alt ?? generation.name }
+                : null,
+            })),
+          }))
+          // Un modèle sans génération visible n'ouvre sur rien. Le filtre
+          // Prisma l'écarte déjà, mais une relation vide est si peu coûteuse à
+          // relire qu'on préfère la vérifier que de la supposer.
+          .filter((model) => model.generations.length > 0),
+      },
+    }
+  } catch (error) {
+    console.error('[packs] marque indisponible', error)
+    return { state: 'unavailable' }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
+export type PackProduct = {
+  productSlug: string
+  productName: string
+  tagline: string | null
+  image: { url: string; alt: string } | null
+  /** Statut le plus favorable parmi les conditionnements documentés. */
+  status: FitmentStatus
+  /**
+   * Conditionnement conseillé, selon la règle partagée. `null` si aucun.
+   *
+   * L'identifiant en fait partie : c'est lui qu'on met au panier quand le
+   * client ajoute d'un coup tout l'éclairage de son véhicule. Sans lui, la
+   * bande de total afficherait une somme qu'aucun bouton ne saurait acheter.
+   */
+  recommended: { id: string; name: string; priceCents: number } | null
+  /** Prix d'entrée, quel que soit le conditionnement conseillé. */
+  fromPriceCents: number
+  /** Composition du conditionnement conseillé, pour dire ce que le pack contient. */
+  contents: string[]
+}
+
+export type PackPositionGroup = {
+  code: string
+  label: string
+  products: PackProduct[]
+}
+
+export type PackGeneration = {
+  makeName: string
+  modelName: string
+  generationName: string
+  years: string
+  phase: string | null
+  /**
+   * Logo du constructeur, quand l'exploitant en a téléversé un.
+   *
+   * Facultatif par nature : un logo de constructeur est une marque déposée, et
+   * l'afficher relève d'un droit qu'il détient ou non. Sans lui, le bandeau
+   * pose le monogramme de `BrandMark`, jamais une case vide.
+   */
+  makeLogo: { url: string; alt: string } | null
+  /** Équipements d'origine documentés pour cette génération. */
+  equipments: Array<{ configurationId: string; code: string; label: string; hint: string | null }>
+  /** Produits groupés par emplacement, toutes configurations confondues. */
+  groups: PackPositionGroup[]
+}
+
+/**
+ * Éclairages documentés pour une génération.
+ *
+ * **Toutes configurations confondues**, et c'est délibéré : à ce niveau le
+ * client n'a pas encore dit son équipement d'origine. Le statut affiché est le
+ * plus favorable parmi les configurations, et la page doit signaler que le
+ * choix de l'équipement reste à faire quand il y en a plusieurs. Afficher
+ * « compatible » ici sans cette réserve ferait passer une documentation pour
+ * une confirmation.
+ *
+ * Et une lecture en échec ne dit rien non plus : `unavailable` est tenu à part
+ * de `absent` pour qu'une panne ne puisse passer ni pour une génération
+ * inconnue, ni pour une génération sans compatibilité relevée.
+ */
+async function lireGenerationDesPacks(
+  type: PackVehicleType,
+  makeSlug: string,
+  modelSlug: string,
+  generationSlug: string,
+): Promise<PackLookup<PackGeneration>> {
+  try {
+    const generation = await prisma.vehicleGeneration.findFirst({
+      where: {
+        slug: generationSlug,
+        ...GENERATION_VISIBLE,
+        model: {
+          slug: modelSlug,
+          ...MODELE_VISIBLE,
+          make: { slug: makeSlug, type, ...MARQUE_VISIBLE },
+        },
+      },
+      include: {
+        model: { include: { make: { include: { logo: { select: { url: true, alt: true } } } } } },
+        configurations: {
+          where: { active: true },
+          include: {
+            equipment: true,
+            fitments: {
+              include: {
+                position: true,
+                accessories: { select: { variantId: true, required: true } },
+                variant: {
+                  include: {
+                    components: { include: { component: true } },
+                    product: {
+                      include: {
+                        media: {
+                          ...ARGS_COUVERTURE,
+                          include: { media: true },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+    if (!generation) return { state: 'absent' }
+
+    /*
+      Un produit peut être documenté sur plusieurs configurations et plusieurs
+      conditionnements. On l'agrège par emplacement puis par produit : une
+      carte par produit, jamais une par ligne de compatibilité — sans quoi le
+      même kit apparaîtrait deux fois dès qu'il convient à l'halogène et au
+      xénon.
+    */
+    /** Conditionnement documenté, avant d'avoir choisi lequel conseiller. */
+    type Candidat = {
+      id: string
+      name: string
+      priceCents: number
+      status: FitmentStatus
+      purchasable: boolean
+      missingRequired: number
+      contents: string[]
+    }
+
+    /** Produit en cours d'agrégation : la carte, plus ses conditionnements. */
+    type ProduitAgrege = Omit<PackProduct, 'status' | 'recommended' | 'fromPriceCents' | 'contents'> & {
+      candidats: Candidat[]
+    }
+
+    const parEmplacement = new Map<
+      string,
+      { code: string; label: string; ordre: number; produits: Map<string, ProduitAgrege> }
+    >()
+
+    for (const configuration of generation.configurations) {
+      for (const fitment of configuration.fitments) {
+        if (
+          !fitment.variant.active ||
+          fitment.variant.product.status !== 'PUBLISHED'
+        ) {
+          continue
+        }
+
+        const groupe =
+          parEmplacement.get(fitment.position.code) ??
+          {
+            code: fitment.position.code,
+            label: nomDeLEmplacement(fitment.position.code, fitment.position.label),
+            ordre: fitment.position.position,
+            produits: new Map<string, ProduitAgrege>(),
+          }
+
+        const slug = fitment.variant.product.slug
+        const fournis = new Set(fitment.variant.components.map((entry) => entry.componentId))
+        const candidat: Candidat = {
+          id: fitment.variant.id,
+          name: fitment.variant.name,
+          priceCents: fitment.variant.priceCents,
+          status: fitment.status,
+          purchasable: isPurchasable(
+            fitment.variant.components.length > 0
+              ? availabilityForKit(
+                  fitment.variant.components.map((entry) => ({
+                    quantity: entry.quantity,
+                    required: entry.required,
+                    component: entry.component,
+                  })),
+                )
+              : availabilityForVariant(fitment.variant),
+          ),
+          missingRequired: fitment.accessories.filter(
+            (accessoire) => accessoire.required && !fournis.has(accessoire.variantId),
+          ).length,
+          contents: fitment.variant.components.map(
+            (entry) => `${entry.quantity} × ${entry.component.name}`,
+          ),
+        }
+
+        const existant = groupe.produits.get(slug)
+        if (existant) {
+          existant.candidats.push(candidat)
+        } else {
+          const cover =
+            couverture(fitment.variant.product.media)?.media ?? couvertureType(fitment.variant.product)
+          groupe.produits.set(slug, {
+            productSlug: slug,
+            productName: fitment.variant.product.name,
+            tagline: fitment.variant.product.tagline,
+            image: cover
+              ? { url: cover.url, alt: cover.alt ?? fitment.variant.product.name }
+              : null,
+            candidats: [candidat],
+          })
+        }
+
+        parEmplacement.set(groupe.code, groupe)
+      }
+    }
+
+    // Poids de statut : CONFIRMED l'emporte, INCOMPATIBLE ferme la marche.
+    const poids: Record<FitmentStatus, number> = {
+      CONFIRMED: 0,
+      UNKNOWN: 1,
+      INCOMPATIBLE: 2,
+    }
+
+    const groups: PackPositionGroup[] = [...parEmplacement.values()]
+      .sort((a, b) => a.ordre - b.ordre)
+      .map((groupe) => ({
+        code: groupe.code,
+        label: groupe.label,
+        products: [...groupe.produits.values()]
+          .map((produit) => {
+            const candidats = produit.candidats
+            const retenu = recommendPackaging(candidats)
+            const meilleurStatut = candidats.reduce<FitmentStatus>(
+              (meilleur, candidat) =>
+                poids[candidat.status] < poids[meilleur] ? candidat.status : meilleur,
+              'INCOMPATIBLE',
+            )
+
+            return {
+              productSlug: produit.productSlug,
+              productName: produit.productName,
+              tagline: produit.tagline,
+              image: produit.image,
+              status: meilleurStatut,
+              recommended: retenu
+                ? { id: retenu.id, name: retenu.name, priceCents: retenu.priceCents }
+                : null,
+              fromPriceCents: Math.min(...candidats.map((candidat) => candidat.priceCents)),
+              contents: candidats.find((candidat) => candidat.id === retenu?.id)?.contents ?? [],
+            }
+          })
+          .sort((a, b) => poids[a.status] - poids[b.status] || a.fromPriceCents - b.fromPriceCents),
+      }))
+
+    return {
+      state: 'found',
+      data: {
+        makeName: generation.model.make.name,
+        makeLogo: generation.model.make.logo
+          ? {
+              url: generation.model.make.logo.url,
+              alt: generation.model.make.logo.alt ?? `Logo ${generation.model.make.name}`,
+            }
+          : null,
+        modelName: generation.model.name,
+        generationName: generation.name,
+        years: yearsLabel(generation.yearFrom, generation.yearTo),
+        phase: generation.phase,
+        equipments: generation.configurations.map((configuration) => ({
+          configurationId: configuration.id,
+          code: configuration.equipment.code,
+          label: configuration.equipment.label,
+          hint: configuration.equipment.hint,
+        })),
+        groups,
+      },
+    }
+  } catch (error) {
+    console.error('[packs] génération indisponible', error)
+    return { state: 'unavailable' }
+  }
+}

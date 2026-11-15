@@ -1,0 +1,319 @@
+import type { Metadata } from 'next'
+import { requireStaff } from '@/lib/admin/guard'
+import { can, ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/admin/permissions'
+import { listAuditLog, listSettings, listStaff } from '@/lib/queries/admin'
+import { assessReadiness, type CheckState } from '@/lib/readiness'
+import { Badge } from '@/components/ui/Badge'
+import { Alert, Card, EmptyState } from '@/components/ui/Surface'
+import { PrefixeCommandeForm } from '@/components/admin/ReglagesForm'
+
+/**
+ * Paramètres, équipe et journal des actions.
+ *
+ * Trois lectures, trois portées différentes. La liste des comptes n'est rendue
+ * qu'à qui a le droit de les gérer : un préparateur n'a pas à savoir qui est
+ * administrateur ni quand il s'est connecté. La donnée n'est d'ailleurs pas
+ * seulement masquée — elle n'est pas lue.
+ */
+
+export const metadata: Metadata = {
+  title: 'Paramètres',
+  robots: { index: false, follow: false },
+}
+
+/* -------------------------------------------------------------------------- */
+/* Libellés                                                                   */
+/* -------------------------------------------------------------------------- */
+
+const dateTimeFormatter = new Intl.DateTimeFormat('fr-FR', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+})
+
+type StaffRow = Awaited<ReturnType<typeof listStaff>>[number]
+
+/* L'état d'un contrôle est écrit, pas seulement coloré : « bloquant » doit se
+   lire sans distinguer le rouge du jaune. */
+const CHECK_COPY: Record<CheckState, { label: string; tone: 'ok' | 'warn' | 'danger' }> = {
+  ok: { label: 'Opérationnel', tone: 'ok' },
+  warn: { label: 'À surveiller', tone: 'warn' },
+  blocking: { label: 'Bloquant', tone: 'danger' },
+}
+
+/* -------------------------------------------------------------------------- */
+/* Page                                                                       */
+/* -------------------------------------------------------------------------- */
+
+const h2Class = 'text-sm font-bold'
+const thClass = 'px-3 py-2 text-left text-xs font-semibold text-muted-strong'
+const tdClass = 'px-3 py-2 align-top'
+
+export default async function AdminSettingsPage() {
+  const staff = await requireStaff('settings.view')
+
+  const canManageStaff = can(staff.role, 'staff.manage')
+
+  const readiness = await assessReadiness()
+  const settings = await listSettings()
+  // Lecture conditionnée au droit : masquer une section déjà chargée laisserait
+  // la donnée partir dans la réponse du serveur.
+  const team: StaffRow[] = canManageStaff ? await listStaff() : []
+  const auditLog = await listAuditLog(50)
+
+  return (
+    <div className="flex flex-col gap-5">
+      <h1 className="text-xl font-extrabold">Paramètres</h1>
+
+      {/* ---------------------------------------------------------------------
+          État de l'installation
+          Placé en tête : c'est le seul endroit qui répond à « peut-on ouvrir ? »,
+          et la réponse se déduit des contrôles, elle n'est pas déclarée.
+          --------------------------------------------------------------------- */}
+      <section aria-labelledby="parametres-etat">
+        <h2 id="parametres-etat" className={h2Class}>
+          État de l&apos;installation
+        </h2>
+
+        {readiness.mayOpen ? (
+          <Alert tone="ok" className="mt-2" title="Aucun point bloquant">
+            Les fonctions essentielles sont configurées. Cela ne remplace pas un essai de bout en
+            bout : une commande réelle, un e-mail reçu, un remboursement.
+          </Alert>
+        ) : (
+          <Alert
+            tone="danger"
+            className="mt-2"
+            title={`La boutique n'est pas prête pour l'ouverture commerciale (${readiness.blocking} point${readiness.blocking > 1 ? 's' : ''} bloquant${readiness.blocking > 1 ? 's' : ''})`}
+          >
+            Les points marqués « bloquant » ci-dessous désignent des fonctions simulées, absentes ou
+            non configurées. Tant qu&apos;ils subsistent, une commande peut être prise sans être
+            encaissée, ou confirmée sans que le client en soit averti.
+          </Alert>
+        )}
+
+        <Card className="mt-2">
+          <ul className="divide-y divide-line">
+            {readiness.checks.map((check) => {
+              const copy = CHECK_COPY[check.state]
+              return (
+                <li key={check.key} className="flex flex-col gap-1 px-3 py-2.5 sm:flex-row sm:gap-4">
+                  <div className="flex shrink-0 items-start gap-2 sm:w-56">
+                    <Badge tone={copy.tone}>{copy.label}</Badge>
+                    <span className="text-sm font-semibold">{check.label}</span>
+                  </div>
+                  <div className="min-w-0 text-sm">
+                    <p className="text-muted-strong">{check.detail}</p>
+                    {check.action ? (
+                      <p className="mt-0.5 text-xs text-muted">{check.action}</p>
+                    ) : null}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </Card>
+
+        <p className="mt-2 text-xs text-muted">
+          Ces contrôles lisent les variables d&apos;environnement et la base. Ils ne vérifient pas
+          qu&apos;un envoi aboutit ni qu&apos;un encaissement est bien crédité : seul un essai réel
+          le montre.
+        </p>
+      </section>
+
+      {/* ---------------------------------------------------------------------
+          Réglages
+          Seuls les réglages que la boutique lit vraiment sont proposés : une
+          valeur modifiable sans effet serait pire que pas de champ du tout.
+          --------------------------------------------------------------------- */}
+      <section aria-labelledby="parametres-reglages">
+        <h2 id="parametres-reglages" className={h2Class}>
+          Réglages
+        </h2>
+        <Card className="mt-2 flex flex-col gap-4 p-4">
+          <PrefixeCommandeForm
+            valeur={String(settings.find((s) => s.key === 'order.prefix')?.value ?? 'CMD')}
+            modifiable={can(staff.role, 'settings.edit')}
+          />
+          <div className="border-t border-line pt-3 text-sm">
+            <p className="font-semibold">Les autres réglages ont leur page :</p>
+            <ul className="mt-1 list-disc pl-5 text-muted-strong">
+              <li>
+                Prix de livraison et livraison offerte : <a className="underline" href="/admin/livraison">Livraison</a>
+              </li>
+              <li>
+                Codes promo : <a className="underline" href="/admin/promotions">Promotions</a>
+              </li>
+              <li>
+                E-mails envoyés aux clients : <a className="underline" href="/admin/emails">Messages</a>
+              </li>
+              <li>Paiement (clé Mollie) : dans Render, variable MOLLIE_API_KEY.</li>
+            </ul>
+          </div>
+        </Card>
+      </section>
+
+      {/* ---------------------------------------------------------------------
+          Équipe — réservée à qui gère les comptes
+          --------------------------------------------------------------------- */}
+      {canManageStaff ? (
+        <section aria-labelledby="parametres-equipe">
+          <h2 id="parametres-equipe" className={h2Class}>
+            Équipe
+          </h2>
+
+          <p className="mt-1 text-sm text-muted-strong">
+            Les comptes se créent en ligne de commande :{' '}
+            <span className="font-mono">npm run admin:create</span>.
+          </p>
+
+          {team.length === 0 ? (
+            <EmptyState className="mt-2" title="Aucun compte dans l’équipe." />
+          ) : (
+            <Card className="mt-2">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[64rem] text-sm">
+                  <caption className="sr-only">Comptes de l&apos;équipe</caption>
+                  <thead>
+                    <tr className="border-b border-line bg-surface-soft">
+                      <th scope="col" className={thClass}>
+                        Adresse e-mail
+                      </th>
+                      <th scope="col" className={thClass}>
+                        Nom
+                      </th>
+                      <th scope="col" className={thClass}>
+                        Rôle
+                      </th>
+                      <th scope="col" className={thClass}>
+                        Actif
+                      </th>
+                      <th scope="col" className={thClass}>
+                        Dernière connexion
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {team.map((member) => {
+                      const name = [member.firstName, member.lastName]
+                        .filter(Boolean)
+                        .join(' ')
+                        .trim()
+                      return (
+                        <tr key={member.id} className="border-b border-line last:border-b-0">
+                          <th scope="row" className={`${tdClass} text-left font-semibold`}>
+                            {member.email}
+                          </th>
+                          <td className={tdClass}>
+                            {name || <span className="text-muted">—</span>}
+                          </td>
+                          <td className={tdClass}>
+                            {member.staffRole ? (
+                              <>
+                                <span className="font-medium">
+                                  {ROLE_LABELS[member.staffRole]}
+                                </span>
+                                <span className="mt-0.5 block max-w-[26rem] text-xs text-muted">
+                                  {ROLE_DESCRIPTIONS[member.staffRole]}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-muted">—</span>
+                            )}
+                          </td>
+                          <td className={tdClass}>
+                            {member.active ? (
+                              <Badge tone="ok">Actif</Badge>
+                            ) : (
+                              <Badge tone="danger">Désactivé</Badge>
+                            )}
+                          </td>
+                          <td className={`${tdClass} whitespace-nowrap text-muted-strong`}>
+                            {member.lastLoginAt ? (
+                              <time dateTime={member.lastLoginAt.toISOString()}>
+                                {dateTimeFormatter.format(member.lastLoginAt)}
+                              </time>
+                            ) : (
+                              <span className="text-muted">jamais</span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+        </section>
+      ) : null}
+
+      {/* ---------------------------------------------------------------------
+          Journal des actions
+          La garde d'entrée exige déjà `settings.view` : répéter le test ici ne
+          protégerait rien et laisserait croire à une seconde barrière.
+          --------------------------------------------------------------------- */}
+      <section aria-labelledby="parametres-journal">
+        <h2 id="parametres-journal" className={h2Class}>
+          Journal des actions
+        </h2>
+
+        <p className="mt-1 text-sm text-muted-strong">
+          Les 50 dernières entrées, la plus récente d&apos;abord.
+        </p>
+
+        {auditLog.length === 0 ? (
+          <EmptyState className="mt-2" title="Aucune action enregistrée." />
+        ) : (
+          <Card className="mt-2">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[60rem] text-sm">
+                <caption className="sr-only">Journal des actions d&apos;administration</caption>
+                <thead>
+                  <tr className="border-b border-line bg-surface-soft">
+                    <th scope="col" className={thClass}>
+                      Date
+                    </th>
+                    <th scope="col" className={thClass}>
+                      Acteur
+                    </th>
+                    <th scope="col" className={thClass}>
+                      Action
+                    </th>
+                    <th scope="col" className={thClass}>
+                      Entité
+                    </th>
+                    <th scope="col" className={thClass}>
+                      Identifiant
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditLog.map((entry) => (
+                    <tr key={entry.id} className="border-b border-line last:border-b-0">
+                      <th
+                        scope="row"
+                        className={`${tdClass} text-left font-normal whitespace-nowrap text-muted-strong`}
+                      >
+                        <time dateTime={entry.createdAt.toISOString()}>
+                          {dateTimeFormatter.format(entry.createdAt)}
+                        </time>
+                      </th>
+                      <td className={`${tdClass} break-words`}>
+                        {entry.actor?.email ?? <span className="text-muted">système</span>}
+                      </td>
+                      <td className={`${tdClass} font-mono text-xs`}>{entry.action}</td>
+                      <td className={tdClass}>{entry.entity}</td>
+                      <td className={`${tdClass} font-mono text-xs break-all`}>
+                        {entry.entityId ?? <span className="text-muted">—</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+      </section>
+    </div>
+  )
+}
