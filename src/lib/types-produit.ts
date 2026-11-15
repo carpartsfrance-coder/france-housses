@@ -79,17 +79,20 @@ export function leVehicule(nom: string, moto = false): string {
  * kit xénon…) ; sans cette ligne, leurs cartes ne se distinguaient que par le
  * prix.
  */
-export function natureDuProduit(nom: string): string | null {
+export function natureDuProduit(nom: string, emplacement?: string | null): string | null {
   const n = nom.toLowerCase()
+  // L'emplacement de la page véhicule tranche mieux que le nom : une housse
+  // « camouflage » de la gamme universelle ne dit pas « universelle ».
+  const universel = emplacement ? /UNIVERS/.test(emplacement) : /universel/.test(n)
   if (/tapis/.test(n)) {
     const matiere = /caoutchouc/.test(n) ? ' caoutchouc' : /moquette/.test(n) ? ' moquette' : /\b3d\b/.test(n) ? ' 3D' : /pvc/.test(n) ? ' PVC' : ''
-    return /universel/.test(n) ? `Tapis universels${matiere}` : `Tapis de sol sur mesure${matiere}`
+    return universel ? `Tapis universels${matiere}` : `Tapis de sol sur mesure${matiere}`
   }
   if (/b[aâ]che|housse de protection carrosserie/.test(n)) return 'Bâche de protection'
   if (/mousse/.test(n)) return 'Mousse d’assise'
   if (/housse/.test(n)) {
     const matiere = /simili/.test(n) ? ' simili cuir' : /alcantara/.test(n) ? ' alcantara' : ''
-    return /universel/.test(n) ? `Housses universelles${matiere}` : `Housses sur mesure${matiere}`
+    return universel ? `Housses universelles${matiere}` : `Housses sur mesure${matiere}`
   }
   return null
 }

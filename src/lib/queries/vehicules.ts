@@ -596,6 +596,10 @@ const groupesGeneriques = lectureCatalogue(
             : 'HOUSSES_UNIVERSELLES'
       const liste = parCode.get(code) ?? []
       if (liste.length >= MAX_PAR_GROUPE) continue
+      // L'ancien catalogue a plusieurs fiches du même nom (une par coloris) :
+      // une seule carte par nom, la moins chère (l'ordre de la requête).
+      const nomNormalise = produit.name.trim().toLowerCase()
+      if (liste.some((p) => p.productName.trim().toLowerCase() === nomNormalise)) continue
       const cover = couverture(produit.media)?.media
       liste.push({
         productSlug: produit.slug,

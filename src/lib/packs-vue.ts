@@ -123,7 +123,7 @@ export function cartesDesPacks(groupes: PackPositionGroup[]): CarteEclairage[] {
     prixCents: produit.recommended?.priceCents ?? produit.fromPriceCents,
     // Une carte d'ampoules halogènes le dit : sous le titre « Éclairage LED »
     // de la page véhicule, rien d'autre ne la distinguerait d'un pack LED.
-    conditionnement: natureDuProduit(produit.productName),
+    conditionnement: natureDuProduit(produit.productName, emplacements[0]?.code),
     autres: [],
     reserve: null,
     verifie: null,
