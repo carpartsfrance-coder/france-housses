@@ -61,6 +61,10 @@ export type CartLineView = {
   productId: string
   /** Réponses au questionnaire de la fiche (véhicule, commentaire). */
   answers: ReponseFigee[]
+  /** Délai de fabrication en jours ouvrés (sur mesure), sinon null. */
+  fabricationJours: number | null
+  /** Produit fabriqué sur mesure : exclu du droit de rétractation. */
+  surMesure: boolean
 }
 
 export type CartView = {
@@ -173,8 +177,9 @@ export async function getCart(configurationId: string | null = null): Promise<Ca
         variantName: variant.name,
         packaging: variant.packaging,
         quantity: line.quantity,
-        unitPriceCents: variant.priceCents,
-        lineTotalCents: variant.priceCents * line.quantity,
+        // Options payantes du questionnaire (« vide-poche : oui (15,00 €) »).
+        unitPriceCents: variant.priceCents + line.supplementCents,
+        lineTotalCents: (variant.priceCents + line.supplementCents) * line.quantity,
         vatRateBp: variant.vatRate?.rateBp ?? 0,
         image: cover ? { url: cover.url, alt: cover.alt ?? variant.product.name } : null,
         components: variant.components.map((entry) => ({
@@ -188,6 +193,8 @@ export async function getCart(configurationId: string | null = null): Promise<Ca
         requiredBy: line.requiredBy,
         productId: variant.product.id,
         answers: lireReponses(line.answers),
+        fabricationJours: variant.product.leadTimeDays ?? null,
+        surMesure: variant.product.madeToMeasure,
       }
     })
 

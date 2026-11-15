@@ -223,7 +223,14 @@ export function BuyBox({
 
   if (!selected) return null
 
-  const total = selected.priceCents + accessoriesTotal
+  // Options payantes du questionnaire (« vide-poche : oui (15,00 €) ») : le
+  // serveur recalcule le même supplément à l'ajout au panier.
+  const supplement = visibles.reduce((somme, champ) => {
+    if (champ.type !== 'select') return somme
+    const option = (champ.options ?? []).find((o) => o.value === reponses[champ.id])
+    return somme + (option?.priceCents && option.priceCents > 0 ? option.priceCents : 0)
+  }, 0)
+  const total = selected.priceCents + accessoriesTotal + supplement
   /* Le nom du conditionnement ne s'affiche que s'il dit autre chose que le titre. */
   // Une combinaison d'options se lit déjà dans les listes : pas de répétition à côté du prix.
   const conditionnementAffiche = selected.name.includes(' : ')
@@ -651,6 +658,7 @@ export function BuyBox({
           <span className="mt-1.5 block text-[13px] text-[#6b6d70]">
             TTC{conditionnementAffiche ? ` · ${conditionnementAffiche.toLowerCase()}` : null}
             {accessoriesTotal > 0 ? ' et accessoires cochés' : null}
+            {supplement > 0 ? `, options comprises (+${formatPrice(supplement)})` : null}
           </span>
           {/*
             Le prix affiché reste celui d'UN conditionnement : le total part

@@ -102,7 +102,7 @@ export default async function PanierPage() {
           <div className="px-4 py-[70px] text-center">
             <IconCart className="mx-auto size-[42px] text-[#a0a0a0]" />
             <h2 className="mt-4 mb-[7px] text-[18px] font-bold">
-              Votre passage au blanc commence ici.
+              Votre panier est vide.
             </h2>
             <p className="text-[12px] text-[#8b8b8b]">
               Partez de votre véhicule pour voir ce qui lui correspond.
@@ -285,7 +285,10 @@ export default async function PanierPage() {
                             purchasable ? 'text-[#7e7e7e]' : 'font-semibold text-danger',
                           )}
                         >
-                          {availabilityLabel(line.availability)}
+                          {purchasable && line.fabricationJours
+                            ? `Fabriqué à la commande : ${line.fabricationJours} jours ouvrés puis expédition`
+                            : availabilityLabel(line.availability)}
+                          {line.surMesure ? ' · sur mesure, sans droit de rétractation' : null}
                         </p>
 
                         <form

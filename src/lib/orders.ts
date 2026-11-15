@@ -172,7 +172,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
 
   // --- Livraison : la méthode doit exister et son prix vient de la base ------
   const subtotalCents = cart.lines.reduce(
-    (sum, line) => sum + line.variant.priceCents * line.quantity,
+    (sum, line) => sum + (line.variant.priceCents + line.supplementCents) * line.quantity,
     0,
   )
   const offers = await getShippingOffers(input.shippingAddress.country)
@@ -185,7 +185,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     ? await evaluerPromotion(cart.promotionCode, {
         lignes: cart.lines.map((line) => ({
           productId: line.variant.productId,
-          totalCents: line.variant.priceCents * line.quantity,
+          totalCents: (line.variant.priceCents + line.supplementCents) * line.quantity,
         })),
         email: input.email,
       })
@@ -197,7 +197,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   const shippingCents = remise?.livraisonOfferte ? 0 : effectivePrice(method, subtotalCents)
 
   const lineInputs = cart.lines.map((line) => ({
-    unitPriceCents: line.variant.priceCents,
+    unitPriceCents: (line.variant.priceCents + line.supplementCents),
     quantity: line.quantity,
     vatRateBp: line.variant.vatRate?.rateBp ?? 0,
   }))
@@ -280,8 +280,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
             variantName: variant.name,
             packaging: variant.packaging,
             quantity: line.quantity,
-            unitPriceCents: variant.priceCents,
-            lineTotalCents: variant.priceCents * line.quantity,
+            unitPriceCents: variant.priceCents + line.supplementCents,
+            lineTotalCents: (variant.priceCents + line.supplementCents) * line.quantity,
             vatRateBp: variant.vatRate?.rateBp ?? 0,
             // Réponses au questionnaire (véhicule, commentaire), figées.
             answers: (line.answers ?? undefined) as Prisma.InputJsonValue | undefined,
@@ -361,7 +361,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       currency: cart.currency,
       lines: cart.lines.map((line) => ({
         label: `${line.variant.product.name} — ${line.variant.name}`,
-        unitPriceCents: line.variant.priceCents,
+        unitPriceCents: (line.variant.priceCents + line.supplementCents),
         quantity: line.quantity,
       })),
       shippingCents: totals.shippingCents,

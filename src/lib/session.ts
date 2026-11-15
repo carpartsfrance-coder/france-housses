@@ -145,7 +145,7 @@ export async function getCartSummary(): Promise<CartSummary> {
       id: cart.id,
       itemCount: cart.lines.reduce((n, line) => n + line.quantity, 0),
       totalCents: cart.lines.reduce(
-        (sum, line) => sum + line.quantity * line.variant.priceCents,
+        (sum, line) => sum + line.quantity * (line.variant.priceCents + line.supplementCents),
         0,
       ),
     }

@@ -18,7 +18,8 @@ export type ChampQuestionnaire = {
   type: 'text' | 'select' | 'textarea'
   required?: boolean
   placeholder?: string | null
-  options?: Array<{ value: string; label: string }>
+  /** `priceCents` : supplément TTC ajouté au prix de la ligne (« oui (15,00 €) »). */
+  options?: Array<{ value: string; label: string; priceCents?: number }>
 }
 
 /**
@@ -82,9 +83,10 @@ export function champsVisibles(
 export function normaliserReponses(
   q: Questionnaire | null | undefined,
   brutes: ReponseBrute[],
-): { ok: true; answers: ReponseFigee[]; key: string } | { ok: false; error: string } {
+): { ok: true; answers: ReponseFigee[]; key: string; supplementCents: number } | { ok: false; error: string } {
   const champs = lireChamps(q)
-  if (champs.length === 0) return { ok: true, answers: [], key: '' }
+  if (champs.length === 0) return { ok: true, answers: [], key: '', supplementCents: 0 }
+  let supplementCents = 0
 
   const valeurs: Record<string, string> = {}
   for (const r of brutes) valeurs[r.id] = (r.value ?? '').slice(0, 1000)
@@ -100,6 +102,8 @@ export function normaliserReponses(
         continue
       }
       answers.push({ id: champ.id, label: champ.label, value: option.label.trim() })
+      const prix = Number(option.priceCents ?? 0)
+      if (Number.isInteger(prix) && prix > 0 && prix < 100_000) supplementCents += prix
     } else {
       const texte = (brute ?? '').replace(/[<>{}=]/g, '').trim()
       if (!texte) {
@@ -111,7 +115,7 @@ export function normaliserReponses(
   }
 
   const key = answers.length ? empreinte(answers.map((a) => `${a.id}=${a.value}`).join('|')) : ''
-  return { ok: true, answers, key }
+  return { ok: true, answers, key, supplementCents }
 }
 
 /** Empreinte courte (FNV-1a, deux passes) : tient dans l'index unique du panier. */

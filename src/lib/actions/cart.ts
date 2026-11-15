@@ -126,9 +126,24 @@ export async function addToCart(input: unknown): Promise<CartActionResult> {
       requiredBy: string | null
       answers: typeof reponses.answers
       answersKey: string
+      supplementCents: number
     }> = [
-      { id: variantId, quantity, requiredBy: null, answers: reponses.answers, answersKey: reponses.key },
-      ...extraVariantIds.map((id) => ({ id, quantity: 1, requiredBy: variantId, answers: [], answersKey: '' })),
+      {
+        id: variantId,
+        quantity,
+        requiredBy: null,
+        answers: reponses.answers,
+        answersKey: reponses.key,
+        supplementCents: reponses.supplementCents,
+      },
+      ...extraVariantIds.map((id) => ({
+        id,
+        quantity: 1,
+        requiredBy: variantId,
+        answers: [],
+        answersKey: '',
+        supplementCents: 0,
+      })),
     ]
 
     for (const target of targets) {
@@ -169,6 +184,7 @@ export async function addToCart(input: unknown): Promise<CartActionResult> {
           variantId: target.id,
           answers: target.answers.length > 0 ? target.answers : undefined,
           answersKey: target.answersKey,
+          supplementCents: target.supplementCents,
           quantity: granted,
           requiredBy: target.requiredBy,
           addedForConfigurationId: configurationId || null,
@@ -332,9 +348,12 @@ async function etatLivraisonOfferte(cartId: string): Promise<string | undefined>
   try {
     const lignes = await prisma.cartLine.findMany({
       where: { cartId },
-      select: { quantity: true, variant: { select: { priceCents: true } } },
+      select: { quantity: true, supplementCents: true, variant: { select: { priceCents: true } } },
     })
-    const sousTotal = lignes.reduce((somme, ligne) => somme + ligne.variant.priceCents * ligne.quantity, 0)
+    const sousTotal = lignes.reduce(
+      (somme, ligne) => somme + (ligne.variant.priceCents + ligne.supplementCents) * ligne.quantity,
+      0,
+    )
     const accroche = await getDeliveryTeaser(sousTotal)
     if (!accroche) return undefined
     if (accroche.priceCents === 0) return 'La livraison est offerte pour cette commande.'

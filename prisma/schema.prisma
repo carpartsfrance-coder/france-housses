@@ -917,6 +917,8 @@ model CartLine {
   /// Empreinte des réponses : deux lignes du même article avec des réponses
   /// différentes (deux véhicules) restent deux lignes.
   answersKey              String         @default("")
+  /// Supplément TTC des options payantes du questionnaire, par unité.
+  supplementCents         Int            @default(0)
   createdAt               DateTime       @default(now())
 
   @@unique([cartId, variantId, answersKey])
