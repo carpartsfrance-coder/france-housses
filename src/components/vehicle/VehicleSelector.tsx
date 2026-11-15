@@ -316,7 +316,7 @@ export function VehicleSelector({
               le saumon #e76b5d qui traînait ici du temps de la maquette de
               référence, et qui ne venait d'aucun jeton.
             */
-            ? 'mb-5 flex w-full flex-wrap gap-x-5 border-b border-line'
+            ? 'mb-5 flex w-full flex-nowrap gap-x-4 border-b border-line sm:gap-x-5'
             : 'inline-flex w-fit rounded-[9px] border border-line bg-surface-muted p-[3px]',
           inline && 'mb-[15px]',
         )}
@@ -340,7 +340,7 @@ export function VehicleSelector({
                   de pixels à la hauteur de la carte pour deux mots.
                 */
                 carte
-                  ? 'touch-cible gap-2 border-b-2 pb-2 text-[14px]'
+                  ? 'touch-cible shrink-0 gap-2 border-b-2 pb-2 text-[13px] whitespace-nowrap sm:text-[14px]'
                   : 'min-h-11 gap-2 rounded-[7px] px-4 text-[13px]',
                 carte
                   ? active
