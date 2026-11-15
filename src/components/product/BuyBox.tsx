@@ -672,7 +672,9 @@ export function BuyBox({
             aria-hidden="true"
             className={cn('size-2 rounded-full', purchasable ? 'bg-ok' : 'bg-line-strong')}
           />
-          {availabilityLabel(selected.availability)}
+          {purchasable && (madeToMeasure || leadTimeDays)
+            ? 'Fabriqué à la commande'
+            : availabilityLabel(selected.availability)}
         </span>
       </div>
 
