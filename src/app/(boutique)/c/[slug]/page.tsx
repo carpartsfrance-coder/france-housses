@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { cn } from '@/lib/cn'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { Breadcrumb } from '@/components/catalogue/Breadcrumb'
@@ -322,7 +323,12 @@ export default async function CategoryPage({
         {/* Colonne de filtres : visible dès lg, remplacée par un dépliant sur mobile. */}
         <section
           aria-labelledby="filtres-titre"
-          className="hidden lg:block lg:w-64 lg:shrink-0"
+          className={cn(
+            'hidden lg:w-64 lg:shrink-0',
+            // Sans filtre utile (les housses n'ont ni culot ni teinte), la
+            // colonne disparaît et la grille prend toute la largeur.
+            groups.some((g) => g.facets.length > 0) && 'lg:block',
+          )}
         >
           <h2 id="filtres-titre" className="text-base font-bold">
             Filtres
@@ -405,7 +411,12 @@ export default async function CategoryPage({
               action={empty.action}
             />
           ) : (
-            <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <ul
+              className={cn(
+                'mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3',
+                !groups.some((g) => g.facets.length > 0) && 'lg:grid-cols-3 xl:grid-cols-4',
+              )}
+            >
               {result.items.map((item, index) => (
                 <ProductCard key={item.slug} product={item} prioritaire={index < 4} />
               ))}
