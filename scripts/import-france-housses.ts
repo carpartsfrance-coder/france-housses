@@ -23,6 +23,7 @@ import path from 'node:path'
 import { PrismaClient, type Prisma } from '@prisma/client'
 import { putFile } from '../src/lib/storage/driver'
 import { sniffMime, ALLOWED_MIME } from '../src/lib/storage/file-type'
+import { recadrerPhoto } from './recadrer-photo'
 
 const prisma = new PrismaClient()
 const args = process.argv.slice(2)
@@ -156,12 +157,19 @@ async function media(
     mediaParUrl.set(url, null)
     return null
   }
-  const stocke = await putFile({ bytes: octets, mimeType: mime, extension: ALLOWED_MIME.get(mime)!, prefix: options.prefix, empreinte })
+  // Photos produit : le grand cadre blanc de l'ancien site est retiré
+  // (scripts/recadrer-photo.ts). L'empreinte reste celle de l'original.
+  let aStocker = octets
+  if (options.prefix === 'produits') {
+    const recadree = await recadrerPhoto(octets).catch(() => null)
+    if (recadree) aStocker = recadree.octets
+  }
+  const stocke = await putFile({ bytes: aStocker, mimeType: mime, extension: ALLOWED_MIME.get(mime)!, prefix: options.prefix, empreinte })
   // Dimensions : la galerie et le choix du visuel de catégorie s'en servent.
   if (!stocke.width) {
     try {
       const { default: sharp } = await import('sharp')
-      const meta = await sharp(octets).metadata()
+      const meta = await sharp(aStocker).metadata()
       stocke.width = meta.width ?? null
       stocke.height = meta.height ?? null
     } catch {
