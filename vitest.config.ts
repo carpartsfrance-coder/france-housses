@@ -34,6 +34,9 @@ export default defineConfig({
       STRIPE_SECRET_KEY: '',
       STRIPE_WEBHOOK_SECRET: '',
       PAYMENT_PROVIDER: '',
+      // Coût scrypt de production : un `.env` de développement qui l'abaisse
+      // (pour aller plus vite) ne doit pas faire échouer le test du coût.
+      AUTH_SCRYPT_LOG_N: '15',
     },
   },
   resolve: {
