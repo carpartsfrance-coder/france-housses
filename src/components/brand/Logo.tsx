@@ -4,14 +4,14 @@ import { identity } from '@/lib/identity'
 import { cn } from '@/lib/cn'
 
 /**
- * Logotype LEDVROOM.
+ * Logotype FRANCE HOUSSES (mot-symbole dessiné dans le style de LEDVROOM).
  *
  * Deux fichiers pour un seul dessin : le mot-symbole est noir sur fond clair,
- * blanc sur fond sombre, et « LED » reste rouge dans les deux cas. Ce n'est
+ * blanc sur fond sombre, et « FRANCE » reste rouge dans les deux cas. Ce n'est
  * pas une recolorisation possible en CSS — il faut les deux images, et `tone`
  * choisit laquelle.
  *
- * **La signature « Éclairage auto & moto » est dans l'image.** Elle n'est donc
+ * **La signature « Housses & tapis sur mesure » est dans l'image.** Elle n'est donc
  * plus une ligne de texte qu'on affiche ou qu'on masque : d'où la disparition
  * de `showBaseline`, qui n'avait plus rien à commander. Les emplacements
  * compacts jouent sur la hauteur, pas sur le contenu.
@@ -29,8 +29,8 @@ import { cn } from '@/lib/cn'
  * identiquement. Les fichiers d'origine sont archivés dans `design/marque/`.
  */
 
-/** Rapport des fichiers détourés (1868 × 312), à tenir pour que rien ne s'étire. */
-const RAPPORT = 1868 / 312
+/** Rapport des fichiers détourés (2670 × 312), à tenir pour que rien ne s'étire. */
+const RAPPORT = 2670 / 312
 
 export function Logo({
   tone = 'light',
@@ -47,7 +47,7 @@ export function Logo({
   className?: string
   href?: string | null
 }) {
-  const fichier = tone === 'dark' ? 'ledvroom-fond-sombre-v2' : 'ledvroom-v2'
+  const fichier = tone === 'dark' ? 'france-housses-fond-sombre' : 'france-housses'
 
   const content = (
     <Image
@@ -76,7 +76,7 @@ export function Logo({
 }
 
 /**
- * L'icône carrée seule — le « V » sur fond noir.
+ * L'icône carrée seule — « FH » sur fond noir.
  *
  * Elle sert là où le logotype complet serait illisible : une pastille, une
  * vignette, un en-tête très étroit. C'est le même dessin que la favicon.
@@ -84,7 +84,7 @@ export function Logo({
 export function LogoMark({ size = 32, className }: { size?: number; className?: string }) {
   return (
     <Image
-      src="/marque/icone-v2.webp"
+      src="/marque/icone-fh.webp"
       alt=""
       width={size}
       height={size}

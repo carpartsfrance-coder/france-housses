@@ -1,1 +1,0 @@
-ALTER TABLE "Media" ADD COLUMN "filigraneAt" TIMESTAMP(3);

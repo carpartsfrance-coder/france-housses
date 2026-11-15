@@ -1,5 +1,6 @@
 // ============================================================================
-// LUMERA — modèle de données
+// FRANCE HOUSSES — modèle de données (repris de LEDVROOM, adapté aux housses,
+// tapis et bâches)
 //
 // Cinq domaines séparés, dans cet ordre :
 //   1. Présentation / contenus éditoriaux
@@ -143,6 +144,12 @@ model Category {
 }
 
 enum PartFamily {
+  SEAT_COVER // housses de siège
+  FLOOR_MAT // tapis de sol
+  BODY_COVER // bâches de protection carrosserie
+  SEAT_FOAM // mousses d'assise
+  GARDEN // housses de salon de jardin
+  // Familles héritées de LEDVROOM, inutilisées ici.
   HEADLIGHT // phares LED
   INTERIOR // éclairage intérieur
   PLATE // éclairage de plaque
@@ -156,8 +163,8 @@ enum PartFamily {
 }
 
 model Product {
-  id               String        @id @default(cuid())
-  slug             String        @unique
+  id               String         @id @default(cuid())
+  slug             String         @unique
   name             String
   /// Bénéfice court affiché sous le titre de la fiche.
   tagline          String?
@@ -165,10 +172,10 @@ model Product {
   /// Rédactionnel long, markdown.
   body             String?
   brand            String?
-  status           ProductStatus @default(DRAFT)
-  kind             ProductKind   @default(SIMPLE)
-  vehicleType      VehicleType   @default(CAR)
-  difficulty       Difficulty    @default(UNKNOWN)
+  status           ProductStatus  @default(DRAFT)
+  kind             ProductKind    @default(SIMPLE)
+  vehicleType      VehicleType    @default(CAR)
+  difficulty       Difficulty     @default(UNKNOWN)
   /// Température de couleur annoncée (Kelvin), nulle si non applicable.
   colorTemperature Int?
   /// Culot (H7, D1S, W5W, BA15S...). Indexé pour la recherche par culot.
@@ -177,13 +184,28 @@ model Product {
   metaDescription  String?
   /// Mis en avant sur la page d'accueil. C'est un choix éditorial explicite,
   /// pas une déduction depuis les ventes — rien ici ne prétend mesurer un succès.
-  featured         Boolean       @default(false)
+  featured         Boolean        @default(false)
   /// Marque les contenus de démonstration : un filtre les retire en un passage.
-  isDemo           Boolean       @default(false)
+  isDemo           Boolean        @default(false)
+  /// Délai de fabrication ou de préparation annoncé, en jours ouvrés.
+  leadTimeDays     Int?
+  /// Fabriqué aux mesures du client : exclu du droit de rétractation
+  /// (art. L221-28 3° du code de la consommation).
+  madeToMeasure    Boolean        @default(false)
+  /// Portée : un véhicule précis (compatibilités), tous les véhicules du type
+  /// (sur mesure à la commande, avec questionnaire) ou universel.
+  scope            ProductScope   @default(VEHICLE)
+  /// Questionnaire à remplir avant l'ajout au panier (véhicule, options…).
+  questionnaireId  String?
+  questionnaire    Questionnaire? @relation(fields: [questionnaireId], references: [id], onDelete: SetNull)
+  /// Identifiant de la fiche sur l'ancien site PrestaShop (id_product).
+  legacyId         Int?           @unique
+  /// Chemin de la fiche sur l'ancien site, pour la redirection 301.
+  legacyPath       String?
   publishedAt      DateTime?
   archivedAt       DateTime?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   variants    ProductVariant[]
   categories  ProductCategory[]
@@ -209,6 +231,39 @@ model Product {
   @@index([bulbBase(ops: raw("gin_trgm_ops"))], type: Gin, map: "Product_bulbBase_trgm_idx")
 }
 
+enum ProductScope {
+  /// Fabriqué pour un véhicule précis : visible sur les pages de ce véhicule.
+  VEHICLE
+  /// Fabriqué à la commande pour tout véhicule du type, d'après le questionnaire.
+  MADE_TO_ORDER
+  /// Universel : convient à tous les véhicules du type.
+  UNIVERSAL
+}
+
+/// Questionnaire partagé entre plusieurs fiches (véhicule à décrire, options).
+/// `fields` : [{ id, label, type: text|select|textarea, required, placeholder,
+/// options: [{ value, label, priceCents }] }] ; `dependencies` : pour un champ
+/// et une valeur, les champs qui s'affichent.
+model Questionnaire {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  name         String
+  fields       Json
+  dependencies Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  products Product[]
+}
+
+/// Ancienne adresse du site (PrestaShop) → nouvelle adresse, redirection 301.
+model Redirection {
+  fromPath  String   @id
+  toPath    String
+  hits      Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
 enum ProductStatus {
   DRAFT
   PUBLISHED
@@ -222,7 +277,15 @@ enum ProductKind {
 }
 
 enum VehicleType {
+  /// Auto
   CAR
+  /// Utilitaire
+  VAN
+  /// Camping-car
+  MOTORHOME
+  /// Poids lourd
+  TRUCK
+  /// Hérités de LEDVROOM, inutilisés ici.
   MOTORCYCLE
   BOTH
 }
@@ -281,6 +344,10 @@ model ProductVariant {
   /// fabricant) : montrée juste après la photo de l'option.
   imageAllumeeId    String?
   imageAllumee      Media?    @relation("VariantImageAllumee", fields: [imageAllumeeId], references: [id], onDelete: SetNull)
+  /// Pastille du nuancier : couleur (#595959) ou image de tissu (URL).
+  swatch            String?
+  /// Identifiant de la déclinaison sur l'ancien site (id_product_attribute).
+  legacyId          Int?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -404,23 +471,23 @@ enum ReviewStatus {
 /// Fichier stocké durablement (stockage objet S3-compatible), jamais sur le
 /// disque éphémère du serveur Render.
 model Media {
-  id         String      @id @default(cuid())
-  storageKey String      @unique
-  url        String
-  mimeType   String
-  width      Int?
-  height     Int?
-  sizeBytes  Int?
+  id          String      @id @default(cuid())
+  storageKey  String      @unique
+  url         String
+  mimeType    String
+  width       Int?
+  height      Int?
+  sizeBytes   Int?
   /// Texte alternatif, obligatoire côté admin pour les visuels de contenu.
-  alt        String?
+  alt         String?
   /// Distingue une photo réelle d'une illustration ou d'un rendu simulé.
-  nature     MediaNature @default(UNSPECIFIED)
-  caption    String?
-  isDemo     Boolean     @default(false)
+  nature      MediaNature @default(UNSPECIFIED)
+  caption     String?
+  isDemo      Boolean     @default(false)
   /// Date de pose du filigrane LEDVROOM (rendus seulement) ; nul = pas encore posé.
   filigraneAt DateTime?
-  createdAt  DateTime    @default(now())
-  createdBy  String?
+  createdAt   DateTime    @default(now())
+  createdBy   String?
 
   products                ProductMedia[]
   categoryHeroes          Category[]          @relation("CategoryHero")
@@ -520,7 +587,8 @@ enum PromotionType {
 
 model VehicleMake {
   id          String      @id @default(cuid())
-  slug        String      @unique
+  /// Unique par type : « renault » existe en auto, en utilitaire et en poids lourd.
+  slug        String
   name        String
   type        VehicleType @default(CAR)
   /// Logo de la marque, choisi parmi les médias. Facultatif : un logo de
@@ -534,6 +602,7 @@ model VehicleMake {
 
   models VehicleModel[]
 
+  @@unique([type, slug])
   @@index([type, position])
 }
 
@@ -843,9 +912,14 @@ model CartLine {
   /// Configuration véhicule au moment de l'ajout, pour détecter les conflits
   /// quand le client change de véhicule en cours de navigation.
   addedForConfigurationId String?
+  /// Réponses au questionnaire de la fiche ([{ label, value }]).
+  answers                 Json?
+  /// Empreinte des réponses : deux lignes du même article avec des réponses
+  /// différentes (deux véhicules) restent deux lignes.
+  answersKey              String         @default("")
   createdAt               DateTime       @default(now())
 
-  @@unique([cartId, variantId])
+  @@unique([cartId, variantId, answersKey])
 }
 
 model Order {
@@ -950,6 +1024,8 @@ model OrderLine {
   vatRateBp      Int
   /// Composition du kit au moment de l'achat, et configuration véhicule visée.
   snapshot       Json
+  /// Réponses au questionnaire (véhicule, options), figées à la commande.
+  answers        Json?
   /// Ligne composant d'un kit acheté.
   parentLineId   String?
 

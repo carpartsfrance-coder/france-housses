@@ -1,9 +1,8 @@
 /**
  * Identité commerciale et coordonnées — point unique de modification.
  *
- * La marque est **LEDVROOM**, sur le domaine ledvroom.com. « LUMERA » était le
- * nom de travail du projet ; il ne subsiste que dans le nom du dépôt et des
- * ressources Render, qui n'apparaissent nulle part côté client.
+ * La marque est **FRANCE HOUSSES**, sur le domaine france-housses.fr. Le code
+ * vient de LEDVROOM (même design, mêmes fonctions).
  *
  * Changer la marque, le domaine, les coordonnées ou les conditions affichées
  * se fait ici (ou, une fois la base en place, depuis la table `Setting` qui
@@ -16,103 +15,70 @@
 
 export const identity = {
   /** Nom affiché partout : header, footer, e-mails, documents. */
-  name: 'LEDVROOM',
-  /**
-   * Suffixe du mot-symbole écrit en texte (e-mails, documents).
-   *
-   * Vide : le logotype fourni ne porte aucun point final, contrairement aux
-   * maquettes de travail. Le champ demeure pour que les rendus textuels n'aient
-   * pas à savoir s'il y en a un.
-   */
+  name: 'FRANCE HOUSSES',
+  /** Suffixe du mot-symbole écrit en texte (e-mails, documents). */
   wordmarkSuffix: '',
   /**
-   * Début du nom porté en rouge dans les rendus textuels — « LED » de
-   * LEDVROOM, comme sur le logotype.
-   *
-   * Les e-mails ne peuvent pas poser l'image du logotype : beaucoup de
-   * messageries bloquent les images distantes par défaut, et un en-tête qui
-   * disparaît laisse un message anonyme. Le mot est donc réécrit en texte, et
-   * ce champ dit où le couper pour retrouver les deux couleurs.
+   * Début du nom porté en rouge dans les rendus textuels — « FRANCE » de
+   * FRANCE HOUSSES, comme sur le logotype. Les e-mails réécrivent le mot en
+   * texte (beaucoup de messageries bloquent les images) : ce champ dit où le
+   * couper pour retrouver les deux couleurs.
    */
-  wordmarkAccent: 'LED',
-  baseline: 'Éclairage auto & moto',
-  tagline: 'Le bon éclairage pour votre véhicule, avec les bons accessoires.',
+  wordmarkAccent: 'FRANCE',
+  baseline: 'Housses & tapis sur mesure',
+  tagline: 'Housses de siège, tapis et bâches fabriqués pour votre véhicule.',
 
   /**
    * Identité légale de l'éditeur.
    *
-   * Les champs à `null` ne sont **pas affichés** : une mention légale fausse
-   * expose davantage qu'une mention absente, et le numéro d'immatriculation
-   * d'une société ne se devine pas. Les pages légales signalent explicitement
-   * ce qui manque, et `readiness.ts` le compte parmi les points bloquants
-   * tant que ce n'est pas renseigné.
-   *
-   * Les champs obligatoires pour vendre en ligne en France (art. L111-1 du
-   * code de la consommation et art. 6 III de la LCEN) sont : la dénomination,
-   * la forme juridique, le capital, l'adresse du siège, le RCS, le numéro de
-   * TVA intracommunautaire et le directeur de la publication.
+   * Vérifiée au registre (Pappers / RNE) le 15 novembre 2026 à partir du SIREN
+   * 488 728 254. Les champs à `null` ne sont **pas affichés** : une mention
+   * légale fausse expose davantage qu'une mention absente.
    */
   legal: {
-    /*
-      Vérifié au répertoire Sirene le 24 octobre 2026, à partir du SIREN
-      907 510 838 : la dénomination exacte est CAR PARTS FRANCE, en trois mots.
-      L'adresse du siège et le dirigeant y sont marqués « non-diffusible » —
-      la société a exercé son droit d'opposition — et proviennent donc de
-      l'exploitant, pas du registre.
-    */
-    companyName: 'CAR PARTS FRANCE' as string | null,
-    legalForm: 'SASU — société par actions simplifiée à associé unique' as string | null,
-    /** SIRET du siège. Le SIREN seul ne désigne pas un établissement. */
-    siret: '907 510 838 00028' as string | null,
-    vatNumber: 'FR61907510838' as string | null,
-    capital: '1 €' as string | null,
-    /** Adresse complète du siège. La ville seule ne suffit pas. */
-    address: '50 boulevard Stalingrad, 06300 Nice, France' as string | null,
-    city: 'Nice' as string | null,
-    /*
-      Le numéro d'immatriculation au RCS est le SIREN ; ce qui le complète est
-      la ville du greffe, celle du siège — Nice.
-    */
-    rcs: 'RCS Nice 907 510 838' as string | null,
-    /*
-      Pour une personne morale, la loi de 1982 désigne le représentant légal :
-      ici le président de la SASU.
-    */
-    publicationDirector: 'Killian Belabbes' as string | null,
+    companyName: 'FRANCE HOUSSES' as string | null,
+    legalForm: 'SAS — société par actions simplifiée' as string | null,
+    /** SIRET du siège. */
+    siret: '488 728 254 00027' as string | null,
+    vatNumber: 'FR92488728254' as string | null,
+    capital: '8 000 €' as string | null,
+    address: '120 rue du Docteur Grouille, 40000 Mont-de-Marsan, France' as string | null,
+    city: 'Mont-de-Marsan' as string | null,
+    rcs: 'RCS Mont-de-Marsan 488 728 254' as string | null,
+    /** Représentant légal : le président de la SAS. */
+    publicationDirector: 'Patrick Thibaut' as string | null,
     hostingProvider: 'Render Services, Inc.',
-    /** Hébergeur : adresse et téléphone sont exigés par la LCEN. */
     hostingAddress: '525 Brannan Street, Suite 300, San Francisco, CA 94107, États-Unis' as
       | string
       | null,
     /**
      * Médiateur de la consommation. Obligatoire pour un vendeur en ligne
-     * (art. L612-1) : l'adhésion à un médiateur agréé est à souscrire, et son
-     * nom ne s'invente pas.
+     * (art. L612-1). Aucun n'est indiqué sur l'ancien site : à renseigner dès
+     * que France Housses aura adhéré à un médiateur agréé — d'ici là la
+     * mention manque et l'état de l'installation le signale.
      */
-    mediator: {
-      name: "Fédération Nationale de l'Automobile (FNA)",
-      address: 'Tour Kupka B, 16 rue Hoche, 92906 Paris La Défense Cedex',
-      url: 'https://www.fna.fr',
-    } as { name: string; url: string; address: string } | null,
+    mediator: null as { name: string; url: string; address: string } | null,
   },
 
   contact: {
-    /*
-      Adresse affichée aux clients : page contact, pied de page, mentions
-      légales, CGV, livraison-retours, garanties, et données structurées. C'est
-      aussi celle du profil Mollie LEDVROOM, que Mollie vérifie sur le site.
-    */
-    email: 'contact@ledvroom.com' as string | null,
-    /*
-      Volontairement vide, à la demande de l'exploitant (7 novembre 2026) : le
-      numéro donné à Mollie ne doit pas apparaître sur le site.
-    */
-    phone: null as string | null,
+    /** Adresse affichée aux clients (page contact, pied de page, CGV…). */
+    email: 'contact@france-housses.fr' as string | null,
+    phone: '05 58 93 95 39' as string | null,
     /** Horaires d'assistance, affichés seulement s'ils sont renseignés. */
-    hours: null as string | null,
+    hours: 'Du lundi au vendredi, 9h–12h et 14h–17h' as string | null,
     contactPath: '/contact',
     helpPath: '/aide',
   },
+
+  /** Showroom (magasin) : affiché sur la page contact et à propos. */
+  showroom: '125 avenue du Maréchal Juin (parking Action), 40000 Mont-de-Marsan' as string | null,
+
+  /** Note réelle de la Société des Avis Garantis, avec lien vers les avis. */
+  avis: {
+    note: '9,2/10',
+    label: 'Société des Avis Garantis',
+    url: 'https://www.societe-des-avis-garantis.fr/www-france-housses-fr/',
+  } as { note: string; label: string; url: string } | null,
 
   locale: {
     lang: 'fr',
@@ -124,52 +90,29 @@ export const identity = {
 
 /**
  * Conditions commerciales affichées dans le bandeau haut et les réassurances.
- * Elles sont volontairement pilotées par des valeurs configurables : aucune
- * formulation définitive n'est écrite en dur dans les composants.
- *
- * `null` = information non validée → la mention correspondante n'est pas
- * affichée plutôt que d'être inventée.
+ * `null` = information non validée → la mention n'est pas affichée.
  */
 export const commercialTerms = {
-  /** Seuil de livraison offerte en centimes TTC. */
-  freeShippingThresholdCents: 8000 as number | null,
-  /** Délai de rétractation légal en France. */
+  /** Seuil de livraison offerte en centimes TTC. Aucun annoncé par France Housses. */
+  freeShippingThresholdCents: null as number | null,
+  /** Délai de rétractation légal (produits standard ; le sur-mesure en est exclu). */
   returnWindowDays: 14 as number | null,
-  /**
-   * Garantie commerciale « Satisfait ou remboursé », en jours après réception
-   * (décision de l'exploitant, 9 novembre 2026, sur le modèle de Lasfit) :
-   * produit neuf, complet, dans son emballage d'origine ; retour à la charge
-   * du client sauf défaut. Les 14 premiers jours restent la rétractation
-   * légale, sans condition. Conditions : article 7 des CGV, page Livraison et
-   * retours.
-   */
-  satisfaitDays: 45 as number | null,
-  /**
-   * Garantie commerciale LEDVROOM, en mois : 5 ans sur tous les produits
-   * (décision de l'exploitant, 8 novembre 2026). Conditions : page Garanties
-   * et article 8 des CGV.
-   */
-  warrantyMonths: 60 as number | null,
-  /**
-   * Estimation d'expédition affichée en fiche produit.
-   * Null tant qu'aucune méthode de livraison réelle n'est configurée : les
-   * délais doivent provenir de ShippingMethod, pas d'une promesse générique.
-   */
-  dispatchEstimate: null as string | null,
+  /** Pas de « satisfait ou remboursé » chez France Housses. */
+  satisfaitDays: null as number | null,
+  /** Pas de garantie commerciale chiffrée : garanties légales seulement. */
+  warrantyMonths: null as number | null,
+  /** Paiement en 3 fois sans frais, à partir de ce montant (centimes TTC). */
+  installmentsFromCents: 20000 as number | null,
+  /** Expédition des produits en stock. */
+  dispatchEstimate: 'Expédié sous 24 h ouvrées' as string | null,
 } as const
 
 export const siteConfig = {
   /** Utilisé pour les URL canoniques, les sitemaps et les e-mails. */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3400',
-  /*
-    Le nom de la marque, et non l'ancien nom de travail. « LUMERA » partait
-    dans la balise `<title>` de chaque page — onglets, résultats de recherche,
-    liens partagés — alors que l'en-tête de ce fichier dit depuis le début que
-    la marque est LEDVROOM.
-  */
-  defaultMetaTitle: 'LEDVROOM — Éclairage LED auto & moto',
+  defaultMetaTitle: 'FRANCE HOUSSES — Housses de siège et tapis sur mesure',
   defaultMetaDescription:
-    'Kits et ampoules LED pour phares, intérieur, plaque, recul, clignotants, xénon et moto. Sélectionnez votre véhicule pour voir ce qui lui correspond.',
+    'Housses de siège, tapis de sol et bâches sur mesure pour voiture, utilitaire, camping-car et poids lourd. Choisissez votre véhicule : nous fabriquons à ses mesures. Depuis 1986.',
   /**
    * Bandeau « maquette » : visible tant que le site n'est pas ouvert.
    * Les maquettes fournies l'affichaient ; on le garde tant que des données de
@@ -206,7 +149,7 @@ export function dureeGarantie(): string | null {
   return `${mois} mois`
 }
 
-/** « Satisfait ou remboursé 45 jours », sinon « Retours sous 14 jours », sinon null. */
+/** « Satisfait ou remboursé N jours », sinon « Retours sous 14 jours », sinon null. */
 export function promesseRetour(): string | null {
   if (commercialTerms.satisfaitDays) return `Satisfait ou remboursé ${commercialTerms.satisfaitDays} jours`
   if (commercialTerms.returnWindowDays) return `Retours sous ${commercialTerms.returnWindowDays} jours`

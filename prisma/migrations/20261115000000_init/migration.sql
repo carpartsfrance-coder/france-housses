@@ -1,5 +1,46 @@
+-- Migration initiale de France Housses.
+--
+-- Le code vient de LEDVROOM, dont l'historique de migrations portait aussi les
+-- données de son catalogue (éclairage). Elles n'ont rien à faire ici : cette
+-- migration unique crée le schéma seul, plus les quelques objets que Prisma ne
+-- décrit pas (extension de recherche, séquences de numérotation, réglage JIT).
+-- Le catalogue France Housses arrive ensuite par `npm run import:france-housses`.
+
+-- Recherche « contient » rapide (index trigrammes). Extension de confiance :
+-- le propriétaire de la base peut la créer sur Render.
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- Numérotation des commandes (séquence : atomique, jamais rejouée).
+CREATE SEQUENCE IF NOT EXISTS order_reference_seq START WITH 1 INCREMENT BY 1;
+
+-- Numérotation continue des factures et des avoirs.
+CREATE SEQUENCE IF NOT EXISTS "facture_numero_seq" START 1;
+CREATE SEQUENCE IF NOT EXISTS "avoir_numero_seq" START 1;
+
+-- Compilation JIT désactivée : les requêtes du site sont courtes, la
+-- compilation coûtait plus que la requête (mesuré sur LEDVROOM).
+DO $$
+BEGIN
+  EXECUTE format('ALTER DATABASE %I SET jit = off', current_database());
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'jit (base) : réglage refusé, ignoré : %', SQLERRM;
+END $$;
+
+DO $$
+BEGIN
+  EXECUTE format('ALTER ROLE %I SET jit = off', current_user);
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'jit (rôle) : réglage refusé, ignoré : %', SQLERRM;
+END $$;
+
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
-CREATE TYPE "PartFamily" AS ENUM ('HEADLIGHT', 'INTERIOR', 'PLATE', 'REVERSE', 'SIDELIGHT', 'TURN_SIGNAL', 'XENON', 'MOTORCYCLE', 'ACCESSORY', 'OTHER');
+CREATE TYPE "PartFamily" AS ENUM ('SEAT_COVER', 'FLOOR_MAT', 'BODY_COVER', 'SEAT_FOAM', 'GARDEN', 'HEADLIGHT', 'INTERIOR', 'PLATE', 'REVERSE', 'SIDELIGHT', 'TURN_SIGNAL', 'XENON', 'MOTORCYCLE', 'ACCESSORY', 'OTHER');
+
+-- CreateEnum
+CREATE TYPE "ProductScope" AS ENUM ('VEHICLE', 'MADE_TO_ORDER', 'UNIVERSAL');
 
 -- CreateEnum
 CREATE TYPE "ProductStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
@@ -8,7 +49,7 @@ CREATE TYPE "ProductStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
 CREATE TYPE "ProductKind" AS ENUM ('SIMPLE', 'KIT');
 
 -- CreateEnum
-CREATE TYPE "VehicleType" AS ENUM ('CAR', 'MOTORCYCLE', 'BOTH');
+CREATE TYPE "VehicleType" AS ENUM ('CAR', 'VAN', 'MOTORHOME', 'TRUCK', 'MOTORCYCLE', 'BOTH');
 
 -- CreateEnum
 CREATE TYPE "Difficulty" AS ENUM ('UNKNOWN', 'EASY', 'MEDIUM', 'HARD');
@@ -191,13 +232,43 @@ CREATE TABLE "Product" (
     "bulbBase" TEXT,
     "metaTitle" TEXT,
     "metaDescription" TEXT,
+    "featured" BOOLEAN NOT NULL DEFAULT false,
     "isDemo" BOOLEAN NOT NULL DEFAULT false,
+    "leadTimeDays" INTEGER,
+    "madeToMeasure" BOOLEAN NOT NULL DEFAULT false,
+    "scope" "ProductScope" NOT NULL DEFAULT 'VEHICLE',
+    "questionnaireId" TEXT,
+    "legacyId" INTEGER,
+    "legacyPath" TEXT,
     "publishedAt" TIMESTAMP(3),
     "archivedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Questionnaire" (
+    "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "fields" JSONB NOT NULL,
+    "dependencies" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Questionnaire_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Redirection" (
+    "fromPath" TEXT NOT NULL,
+    "toPath" TEXT NOT NULL,
+    "hits" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Redirection_pkey" PRIMARY KEY ("fromPath")
 );
 
 -- CreateTable
@@ -218,6 +289,7 @@ CREATE TABLE "ProductVariant" (
     "packaging" "Packaging" NOT NULL DEFAULT 'UNIT',
     "priceCents" INTEGER NOT NULL,
     "compareAtCents" INTEGER,
+    "costCents" INTEGER,
     "vatRateId" TEXT,
     "stockOnHand" INTEGER NOT NULL DEFAULT 0,
     "stockReserved" INTEGER NOT NULL DEFAULT 0,
@@ -227,6 +299,10 @@ CREATE TABLE "ProductVariant" (
     "position" INTEGER NOT NULL DEFAULT 0,
     "active" BOOLEAN NOT NULL DEFAULT true,
     "isDemo" BOOLEAN NOT NULL DEFAULT false,
+    "imageId" TEXT,
+    "imageAllumeeId" TEXT,
+    "swatch" TEXT,
+    "legacyId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -317,6 +393,7 @@ CREATE TABLE "Media" (
     "nature" "MediaNature" NOT NULL DEFAULT 'UNSPECIFIED',
     "caption" TEXT,
     "isDemo" BOOLEAN NOT NULL DEFAULT false,
+    "filigraneAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdBy" TEXT,
 
@@ -403,6 +480,7 @@ CREATE TABLE "VehicleGeneration" (
     "phase" TEXT,
     "yearFrom" INTEGER NOT NULL,
     "yearTo" INTEGER,
+    "photoMediaId" TEXT,
     "active" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "VehicleGeneration_pkey" PRIMARY KEY ("id")
@@ -424,6 +502,8 @@ CREATE TABLE "LightingEquipment" (
     "code" TEXT NOT NULL,
     "label" TEXT NOT NULL,
     "description" TEXT,
+    "hint" TEXT,
+    "illustrationId" TEXT,
     "position" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "LightingEquipment_pkey" PRIMARY KEY ("id")
@@ -499,6 +579,8 @@ CREATE TABLE "User" (
     "staffRole" "StaffRole",
     "active" BOOLEAN NOT NULL DEFAULT true,
     "lastLoginAt" TIMESTAMP(3),
+    "failedLogins" INTEGER NOT NULL DEFAULT 0,
+    "lockedUntil" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -588,6 +670,8 @@ CREATE TABLE "CartLine" (
     "quantity" INTEGER NOT NULL DEFAULT 1,
     "requiredBy" TEXT,
     "addedForConfigurationId" TEXT,
+    "answers" JSONB,
+    "answersKey" TEXT NOT NULL DEFAULT '',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "CartLine_pkey" PRIMARY KEY ("id")
@@ -613,6 +697,7 @@ CREATE TABLE "Order" (
     "totalCents" INTEGER NOT NULL,
     "promotionId" TEXT,
     "promotionCode" TEXT,
+    "cartToken" TEXT,
     "shippingAddress" JSONB NOT NULL,
     "billingAddress" JSONB NOT NULL,
     "shippingMethodCode" TEXT,
@@ -641,6 +726,7 @@ CREATE TABLE "OrderLine" (
     "lineTotalCents" INTEGER NOT NULL,
     "vatRateBp" INTEGER NOT NULL,
     "snapshot" JSONB NOT NULL,
+    "answers" JSONB,
     "parentLineId" TEXT,
 
     CONSTRAINT "OrderLine_pkey" PRIMARY KEY ("id")
@@ -751,6 +837,19 @@ CREATE TABLE "Document" (
 );
 
 -- CreateTable
+CREATE TABLE "StockAlert" (
+    "id" TEXT NOT NULL,
+    "variantId" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "configurationId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "notifiedAt" TIMESTAMP(3),
+    "cancelledAt" TIMESTAMP(3),
+
+    CONSTRAINT "StockAlert_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "StockMovement" (
     "id" TEXT NOT NULL,
     "variantId" TEXT NOT NULL,
@@ -825,6 +924,7 @@ CREATE TABLE "ImportJob" (
     "skippedRows" INTEGER NOT NULL DEFAULT 0,
     "errorRows" INTEGER NOT NULL DEFAULT 0,
     "cursor" INTEGER NOT NULL DEFAULT 0,
+    "lockedAt" TIMESTAMP(3),
     "summary" JSONB,
     "createdBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -863,6 +963,16 @@ CREATE TABLE "AuditLog" (
 );
 
 -- CreateTable
+CREATE TABLE "RateLimit" (
+    "key" TEXT NOT NULL,
+    "count" INTEGER NOT NULL DEFAULT 0,
+    "windowStart" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "blockedUntil" TIMESTAMP(3),
+
+    CONSTRAINT "RateLimit_pkey" PRIMARY KEY ("key")
+);
+
+-- CreateTable
 CREATE TABLE "JobQueue" (
     "id" TEXT NOT NULL,
     "kind" TEXT NOT NULL,
@@ -895,6 +1005,23 @@ CREATE TABLE "EmailLog" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "EmailLog_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "VisitEvent" (
+    "id" TEXT NOT NULL,
+    "at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "visit" TEXT NOT NULL,
+    "kind" TEXT NOT NULL,
+    "path" TEXT NOT NULL,
+    "target" TEXT,
+    "label" TEXT,
+    "zone" TEXT,
+    "query" TEXT,
+    "source" TEXT,
+    "device" TEXT,
+
+    CONSTRAINT "VisitEvent_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -934,7 +1061,13 @@ CREATE INDEX "Category_family_idx" ON "Category"("family");
 CREATE UNIQUE INDEX "Product_slug_key" ON "Product"("slug");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Product_legacyId_key" ON "Product"("legacyId");
+
+-- CreateIndex
 CREATE INDEX "Product_status_publishedAt_idx" ON "Product"("status", "publishedAt");
+
+-- CreateIndex
+CREATE INDEX "Product_featured_status_idx" ON "Product"("featured", "status");
 
 -- CreateIndex
 CREATE INDEX "Product_bulbBase_idx" ON "Product"("bulbBase");
@@ -944,6 +1077,21 @@ CREATE INDEX "Product_vehicleType_idx" ON "Product"("vehicleType");
 
 -- CreateIndex
 CREATE INDEX "Product_isDemo_idx" ON "Product"("isDemo");
+
+-- CreateIndex
+CREATE INDEX "Product_name_trgm_idx" ON "Product" USING GIN ("name" gin_trgm_ops);
+
+-- CreateIndex
+CREATE INDEX "Product_tagline_trgm_idx" ON "Product" USING GIN ("tagline" gin_trgm_ops);
+
+-- CreateIndex
+CREATE INDEX "Product_description_trgm_idx" ON "Product" USING GIN ("description" gin_trgm_ops);
+
+-- CreateIndex
+CREATE INDEX "Product_bulbBase_trgm_idx" ON "Product" USING GIN ("bulbBase" gin_trgm_ops);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Questionnaire_code_key" ON "Questionnaire"("code");
 
 -- CreateIndex
 CREATE INDEX "ProductCategory_categoryId_position_idx" ON "ProductCategory"("categoryId", "position");
@@ -956,6 +1104,9 @@ CREATE INDEX "ProductVariant_productId_position_idx" ON "ProductVariant"("produc
 
 -- CreateIndex
 CREATE INDEX "ProductVariant_sku_idx" ON "ProductVariant"("sku");
+
+-- CreateIndex
+CREATE INDEX "ProductVariant_imageId_idx" ON "ProductVariant"("imageId");
 
 -- CreateIndex
 CREATE INDEX "KitComponent_componentId_idx" ON "KitComponent"("componentId");
@@ -997,10 +1148,10 @@ CREATE UNIQUE INDEX "Promotion_code_key" ON "Promotion"("code");
 CREATE INDEX "Promotion_active_startsAt_endsAt_idx" ON "Promotion"("active", "startsAt", "endsAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "VehicleMake_slug_key" ON "VehicleMake"("slug");
+CREATE INDEX "VehicleMake_type_position_idx" ON "VehicleMake"("type", "position");
 
 -- CreateIndex
-CREATE INDEX "VehicleMake_type_position_idx" ON "VehicleMake"("type", "position");
+CREATE UNIQUE INDEX "VehicleMake_type_slug_key" ON "VehicleMake"("type", "slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "VehicleModel_makeId_slug_key" ON "VehicleModel"("makeId", "slug");
@@ -1072,7 +1223,7 @@ CREATE INDEX "Cart_userId_idx" ON "Cart"("userId");
 CREATE INDEX "Cart_updatedAt_idx" ON "Cart"("updatedAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CartLine_cartId_variantId_key" ON "CartLine"("cartId", "variantId");
+CREATE UNIQUE INDEX "CartLine_cartId_variantId_answersKey_key" ON "CartLine"("cartId", "variantId", "answersKey");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Order_reference_key" ON "Order"("reference");
@@ -1120,6 +1271,12 @@ CREATE UNIQUE INDEX "Document_number_key" ON "Document"("number");
 CREATE INDEX "Document_orderId_type_idx" ON "Document"("orderId", "type");
 
 -- CreateIndex
+CREATE INDEX "StockAlert_variantId_notifiedAt_idx" ON "StockAlert"("variantId", "notifiedAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "StockAlert_variantId_email_key" ON "StockAlert"("variantId", "email");
+
+-- CreateIndex
 CREATE INDEX "StockMovement_variantId_createdAt_idx" ON "StockMovement"("variantId", "createdAt");
 
 -- CreateIndex
@@ -1150,6 +1307,9 @@ CREATE INDEX "AuditLog_entity_entityId_createdAt_idx" ON "AuditLog"("entity", "e
 CREATE INDEX "AuditLog_actorId_createdAt_idx" ON "AuditLog"("actorId", "createdAt");
 
 -- CreateIndex
+CREATE INDEX "RateLimit_windowStart_idx" ON "RateLimit"("windowStart");
+
+-- CreateIndex
 CREATE INDEX "JobQueue_status_runAfter_idx" ON "JobQueue"("status", "runAfter");
 
 -- CreateIndex
@@ -1157,6 +1317,15 @@ CREATE INDEX "EmailLog_toEmail_createdAt_idx" ON "EmailLog"("toEmail", "createdA
 
 -- CreateIndex
 CREATE INDEX "EmailLog_template_createdAt_idx" ON "EmailLog"("template", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "VisitEvent_at_idx" ON "VisitEvent"("at");
+
+-- CreateIndex
+CREATE INDEX "VisitEvent_visit_at_idx" ON "VisitEvent"("visit", "at");
+
+-- CreateIndex
+CREATE INDEX "VisitEvent_kind_at_idx" ON "VisitEvent"("kind", "at");
 
 -- AddForeignKey
 ALTER TABLE "MenuEntry" ADD CONSTRAINT "MenuEntry_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "MenuEntry"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1166,6 +1335,9 @@ ALTER TABLE "Category" ADD CONSTRAINT "Category_heroMediaId_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "Category" ADD CONSTRAINT "Category_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Product" ADD CONSTRAINT "Product_questionnaireId_fkey" FOREIGN KEY ("questionnaireId") REFERENCES "Questionnaire"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProductCategory" ADD CONSTRAINT "ProductCategory_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1178,6 +1350,12 @@ ALTER TABLE "ProductVariant" ADD CONSTRAINT "ProductVariant_productId_fkey" FORE
 
 -- AddForeignKey
 ALTER TABLE "ProductVariant" ADD CONSTRAINT "ProductVariant_vatRateId_fkey" FOREIGN KEY ("vatRateId") REFERENCES "VatRate"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductVariant" ADD CONSTRAINT "ProductVariant_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "Media"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductVariant" ADD CONSTRAINT "ProductVariant_imageAllumeeId_fkey" FOREIGN KEY ("imageAllumeeId") REFERENCES "Media"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "KitComponent" ADD CONSTRAINT "KitComponent_kitId_fkey" FOREIGN KEY ("kitId") REFERENCES "ProductVariant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1213,13 +1391,22 @@ ALTER TABLE "ProductMedia" ADD CONSTRAINT "ProductMedia_productId_fkey" FOREIGN 
 ALTER TABLE "ProductMedia" ADD CONSTRAINT "ProductMedia_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "VehicleMake" ADD CONSTRAINT "VehicleMake_logoMediaId_fkey" FOREIGN KEY ("logoMediaId") REFERENCES "Media"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "VehicleModel" ADD CONSTRAINT "VehicleModel_makeId_fkey" FOREIGN KEY ("makeId") REFERENCES "VehicleMake"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "VehicleGeneration" ADD CONSTRAINT "VehicleGeneration_modelId_fkey" FOREIGN KEY ("modelId") REFERENCES "VehicleModel"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "VehicleGeneration" ADD CONSTRAINT "VehicleGeneration_photoMediaId_fkey" FOREIGN KEY ("photoMediaId") REFERENCES "Media"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "VehicleTrim" ADD CONSTRAINT "VehicleTrim_generationId_fkey" FOREIGN KEY ("generationId") REFERENCES "VehicleGeneration"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LightingEquipment" ADD CONSTRAINT "LightingEquipment_illustrationId_fkey" FOREIGN KEY ("illustrationId") REFERENCES "Media"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "VehicleConfiguration" ADD CONSTRAINT "VehicleConfiguration_generationId_fkey" FOREIGN KEY ("generationId") REFERENCES "VehicleGeneration"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1306,6 +1493,9 @@ ALTER TABLE "Shipment" ADD CONSTRAINT "Shipment_orderId_fkey" FOREIGN KEY ("orde
 ALTER TABLE "Document" ADD CONSTRAINT "Document_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "StockAlert" ADD CONSTRAINT "StockAlert_variantId_fkey" FOREIGN KEY ("variantId") REFERENCES "ProductVariant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "StockMovement" ADD CONSTRAINT "StockMovement_variantId_fkey" FOREIGN KEY ("variantId") REFERENCES "ProductVariant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1325,3 +1515,4 @@ ALTER TABLE "ImportRow" ADD CONSTRAINT "ImportRow_jobId_fkey" FOREIGN KEY ("jobI
 
 -- AddForeignKey
 ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_actorId_fkey" FOREIGN KEY ("actorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
