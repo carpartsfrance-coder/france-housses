@@ -285,7 +285,7 @@ export default async function PanierPage() {
                             purchasable ? 'text-[#7e7e7e]' : 'font-semibold text-danger',
                           )}
                         >
-                          {purchasable && line.fabricationJours
+                          {purchasable && line.fabricationJours && (line.surMesure || line.fabricationJours >= 7)
                             ? `Fabriqué à la commande : ${line.fabricationJours} jours ouvrés puis expédition`
                             : availabilityLabel(line.availability)}
                           {line.surMesure ? ' · sur mesure, sans droit de rétractation' : null}

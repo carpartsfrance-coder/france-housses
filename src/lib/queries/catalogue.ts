@@ -557,7 +557,7 @@ async function lireListe(
         })(),
         variantCount: product.variants.length,
         availability,
-        fabriqueALaCommande: product.madeToMeasure || Boolean(product.leadTimeDays),
+        fabriqueALaCommande: product.madeToMeasure || (product.leadTimeDays ?? 0) >= 7,
         fitment: configurationId ? bestStatus(statuses) : null,
         pourUnAutreVehicule:
           autresVehicules.has(product.id) && bestStatus(statuses) !== 'CONFIRMED',
