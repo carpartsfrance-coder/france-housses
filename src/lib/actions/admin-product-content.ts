@@ -752,3 +752,61 @@ export async function detachProductGuide(
     return erreur('détachement de guide', cause)
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Fabrication (France Housses)                                               */
+/* -------------------------------------------------------------------------- */
+
+const PORTEES = ['VEHICLE', 'MADE_TO_ORDER', 'UNIVERSAL'] as const
+
+/**
+ * Portée, sur mesure, délai de fabrication et questionnaire du produit.
+ *
+ * - Portée « véhicule » : le produit n'apparaît que pour les véhicules de son
+ *   onglet Compatibilités.
+ * - Portée « à la commande » : il apparaît pour tous les véhicules de son type,
+ *   et le client remplit le questionnaire (marque, modèle, places…).
+ * - « Sur mesure » coche l'exclusion du droit de rétractation sur la fiche.
+ */
+export async function updateProductFabrication(
+  _precedent: ContentState,
+  formData: FormData,
+): Promise<ContentState> {
+  const staff = await requireStaff('catalog.edit')
+  const saisie = saisieRenvoyee(formData)
+  const productId = champ(formData, 'productId')
+  const scope = champ(formData, 'scope')
+  if (!(PORTEES as readonly string[]).includes(scope)) return { error: 'Portée inconnue.', saisie }
+  const delaiBrut = champ(formData, 'leadTimeDays').trim()
+  const leadTimeDays = delaiBrut === '' ? null : Number(delaiBrut)
+  if (leadTimeDays !== null && (!Number.isInteger(leadTimeDays) || leadTimeDays < 0 || leadTimeDays > 120)) {
+    return { error: 'Le délai de fabrication est un nombre de jours ouvrés, entre 0 et 120.', saisie }
+  }
+  const madeToMeasure = formData.get('madeToMeasure') === 'on'
+  const questionnaireId = champ(formData, 'questionnaireId').trim() || null
+
+  try {
+    const avant = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true, slug: true, scope: true, madeToMeasure: true, leadTimeDays: true, questionnaireId: true },
+    })
+    if (!avant) return { error: 'Produit introuvable.', saisie }
+    if (questionnaireId) {
+      const q = await prisma.questionnaire.findUnique({ where: { id: questionnaireId }, select: { id: true } })
+      if (!q) return { error: 'Questionnaire introuvable.', saisie }
+    }
+    const apres = { scope: scope as (typeof PORTEES)[number], madeToMeasure, leadTimeDays, questionnaireId }
+    await prisma.product.update({ where: { id: productId }, data: apres })
+    await audit(staff, 'product.fabrication', 'Product', productId, {
+      scope: avant.scope,
+      madeToMeasure: avant.madeToMeasure,
+      leadTimeDays: avant.leadTimeDays,
+      questionnaireId: avant.questionnaireId,
+    }, apres)
+    rafraichir(avant)
+    revalidatePath('/vehicules', 'layout')
+    return { notice: 'Fabrication enregistrée.' }
+  } catch (cause) {
+    return erreur('fabrication', cause, saisie)
+  }
+}

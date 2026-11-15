@@ -44,6 +44,8 @@ import {
   RedactionnelForm,
 } from '@/components/admin/ProductContentForms'
 import { ProductSpecsManager, type SpecFiche } from '@/components/admin/ProductSpecsManager'
+import { FabricationForm } from '@/components/admin/FabricationForm'
+import { prisma } from '@/lib/db'
 import { ProductFaqManager, type FaqFiche } from '@/components/admin/ProductFaqManager'
 import {
   ProductGuidesManager,
@@ -176,11 +178,16 @@ export default async function AdminProductPage({ params, searchParams }: PagePro
   // Rubriques proposées à l'édition, taux de TVA et guides disponibles. Les
   // deux premières listes servent aussi à l'écran de création : elles vivent
   // dans les requêtes, pas ici.
-  const [categoriesOptions, tauxTva, tousLesGuides, emplacements] = await Promise.all([
+  const [categoriesOptions, tauxTva, tousLesGuides, emplacements, questionnaires, fabrication] = await Promise.all([
     listCategoryOptions(),
     listVatRates(),
     listGuideOptions(),
     listLightPositions(),
+    prisma.questionnaire.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } }),
+    prisma.product.findUnique({
+      where: { id: product.id },
+      select: { scope: true, madeToMeasure: true, leadTimeDays: true, questionnaireId: true },
+    }),
   ])
 
   const specs: SpecFiche[] = product.specs.map((spec) => ({
@@ -581,6 +588,20 @@ export default async function AdminProductPage({ params, searchParams }: PagePro
                   mayEdit={mayEdit}
                 />
               </Bloc>
+
+              {fabrication ? (
+                <Bloc
+                  titre="Fabrication et commande"
+                  description="Sur mesure ou en stock, délai de fabrication, questions posées au client."
+                >
+                  <FabricationForm
+                    productId={product.id}
+                    valeurs={fabrication}
+                    questionnaires={questionnaires}
+                    mayEdit={mayEdit}
+                  />
+                </Bloc>
+              ) : null}
 
               <Bloc
                 titre="Contenu commercial"
