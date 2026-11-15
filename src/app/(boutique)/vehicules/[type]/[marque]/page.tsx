@@ -148,10 +148,8 @@ export default async function PacksMarquePage({ params }: PageProps) {
                       <span className="mt-0.5 block text-[9px] text-[#828282]">
                         {generation.phase ? `${generation.phase} · ` : null}
                         {generation.hasFitments
-                          ? generation.configurationCount > 1
-                            ? `${generation.configurationCount} équipements d'origine documentés`
-                            : "1 équipement d'origine documenté"
-                          : 'Compatibilités non encore relevées'}
+                          ? 'Housses et tapis faits pour cette version'
+                          : 'Gammes à la commande et universelles'}
                       </span>
                     </span>
                     <IconChevronRight className="size-4 shrink-0 text-muted" />
