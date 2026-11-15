@@ -23,7 +23,7 @@
     "test:watch": "vitest",
     "admin:create": "tsx scripts/create-admin.ts",
     "jobs:run": "tsx --conditions=react-server scripts/run-jobs.ts",
-    "test:db:setup": "createdb lumera_test || true && DATABASE_URL=\"postgresql://$USER@localhost:5432/lumera_test?schema=public\" prisma migrate deploy",
+    "test:db:setup": "createdb fh_test || true && DATABASE_URL=\"postgresql://$USER@localhost:5432/fh_test?schema=public\" prisma migrate deploy",
     "contenus:accueil": "tsx scripts/sync-home-blocks.ts",
     "visibles": "tsx scripts/compte-visibles.ts",
     "import:france-housses": "tsx scripts/import-france-housses.ts"

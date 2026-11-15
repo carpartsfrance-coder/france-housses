@@ -74,7 +74,7 @@ export async function MethodSection(_props: MethodSectionProps) {
     {
       quand: 'Après',
       texte: `Une question, un souci ? Une personne de l’équipe vous répond.${
-        retour ? ` ${retour}.` : ''
+        retour ? ` ${retour} sur les produits standard.` : ''
       }`,
       lien: { label: 'Écrire à l’équipe', href: '/contact' },
     },

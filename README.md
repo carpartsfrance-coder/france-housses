@@ -1,6 +1,9 @@
-# LUMERA — boutique d'éclairage auto & moto
+# FRANCE HOUSSES — housses de siège, tapis et bâches sur mesure
 
-> **LUMERA est un nom de travail.** La marque, les coordonnées et les conditions
+> Code repris de LEDVROOM (même design, même back-office), adapté aux housses.
+> **Pour la mise en ligne : [docs/mise-en-ligne-france-housses.md](docs/mise-en-ligne-france-housses.md).**
+
+> **Identité.** La marque, les coordonnées et les conditions
 > commerciales sont centralisées dans [`src/lib/identity.ts`](src/lib/identity.ts)
 > et dans la table `Setting` : les changer ne demande aucune retouche de gabarit.
 
