@@ -156,7 +156,7 @@ export function ComparisonSection({ content }: ComparisonSectionProps) {
                 une simulation : un lecteur d'écran ne voit pas la mention
                 peinte dans le coin.
               */
-              alt="Comparatif simulé, de nuit, depuis le poste de conduite : à gauche la route éclairée en halogène, à droite la même route éclairée en LED."
+              alt="Deux sièges habillés de housses sur mesure : à gauche le coloris gris, à droite le coloris bordeaux (visuels d’illustration)."
               fill
               sizes="(min-width: 1024px) 730px, 100vw"
               className="object-cover object-center"
