@@ -345,7 +345,7 @@ export default async function Page() {
         nom={titre}
         annees={affiche?.years ?? ''}
         nombreDePacks={cartes.length}
-        moto={vehicle.type === 'MOTORCYCLE'}
+        moto={false}
         action={
           <ButtonLink
             href="/vehicule"

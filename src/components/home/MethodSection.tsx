@@ -18,7 +18,8 @@ import { formatPrice, promesseRetour } from '@/lib/identity'
  * page ne répond pas, la section garde son texte et perd seulement l'exemple.
  */
 
-const EXEMPLE = { marque: 'dacia', modele: 'duster', generation: 'duster' } as const
+/* Véhicule d'exemple : une génération récente et courante, avec housses et tapis. */
+const EXEMPLE = { marque: 'renault', modele: 'clio', generation: 'clio-4-2012' } as const
 const LIGNES_MAX = 6
 
 export type MethodSectionProps = {
@@ -42,7 +43,7 @@ async function exemple() {
         }
       })
       .filter((l): l is NonNullable<typeof l> => l !== null)
-    if (lignes.length < 3) return null
+    if (lignes.length < 2) return null
     return {
       nom: `${v.makeName} ${v.modelName}`,
       annees: v.years,
@@ -67,8 +68,8 @@ export async function MethodSection(_props: MethodSectionProps) {
     },
     {
       quand: 'Au montage',
-      texte: 'Les gestes à connaître pour chaque emplacement : plaque, veilleuses, phares, recul.',
-      lien: { label: 'Lire les conseils de montage', href: '/guides' },
+      texte: 'Chaque housse arrive avec sa notice, et la plupart des fiches ont leur vidéo de montage.',
+      lien: { label: 'Voir les conseils de montage', href: '/guides' },
     },
     {
       quand: 'Après',
@@ -87,11 +88,11 @@ export async function MethodSection(_props: MethodSectionProps) {
             id="method-title"
             className="max-w-[15ch] text-[30px] leading-[1.08] font-bold tracking-[-1px] text-slate-ink lg:text-[42px] lg:tracking-[-1.6px]"
           >
-            On ne vous vend pas une ampoule au hasard.
+            On ne vous vend pas une housse au hasard.
           </h2>
           <p className="mt-5 max-w-[46ch] text-[16px] leading-[1.6] text-[#4b4e52] lg:text-[17px]">
-            Chaque pack est composé pour un véhicule précis, emplacement par emplacement. Vous
-            savez avant de commander ce qui se monte sur le vôtre.
+            Chaque housse sur mesure est taillée pour un véhicule précis, siège par siège. Vous
+            savez avant de commander ce qui va sur le vôtre.
           </p>
 
           <dl className="mt-9 border-t border-[#e2e2e2]">
@@ -155,12 +156,12 @@ export async function MethodSection(_props: MethodSectionProps) {
                   href={vehicule.href}
                   className="inline-flex min-h-9 items-center text-[14px] font-semibold text-white underline decoration-[#6b7176] underline-offset-4 hover:decoration-white"
                 >
-                  Voir les {vehicule.total} emplacements du {vehicule.nom}
+                  Voir tous les produits pour la {vehicule.nom}
                 </Link>
               </div>
             </div>
             <figcaption className="mt-3 text-[13px] text-[#6b6d70]">
-              La même vérification est faite pour chaque véhicule du catalogue.
+              La même recherche fonctionne pour chaque véhicule du catalogue.
             </figcaption>
           </figure>
         ) : null}

@@ -123,11 +123,7 @@ export function cartesDesPacks(groupes: PackPositionGroup[]): CarteEclairage[] {
     prixCents: produit.recommended?.priceCents ?? produit.fromPriceCents,
     // Une carte d'ampoules halogènes le dit : sous le titre « Éclairage LED »
     // de la page véhicule, rien d'autre ne la distinguerait d'un pack LED.
-    conditionnement:
-      nomDuConditionnement(produit) ??
-      (estEffetXenon(produit.productName)
-        ? 'Ampoules halogènes effet xénon'
-        : natureDuProduit(produit.productName)),
+    conditionnement: natureDuProduit(produit.productName),
     autres: [],
     reserve: null,
     verifie: null,
@@ -213,41 +209,38 @@ export function nomDuConditionnement(
  * pièce : des veilleuses sont à l'avant, une plaque à l'arrière, même quand le
  * schéma les range ailleurs.
  */
+/*
+  FRANCE HOUSSES : les « zones » de LEDVROOM (avant, arrière, habitacle)
+  deviennent les familles de produits d'un véhicule. Les clés restent les
+  mêmes (le code qui filtre et trie n'a pas à changer), les libellés non.
+*/
 export const ZONES = [
-  { cle: 'tout', label: 'Tous les packs', court: 'Tous' },
-  { cle: 'avant', label: 'Avant', court: 'Avant' },
-  { cle: 'arriere', label: 'Arrière', court: 'Arrière' },
-  { cle: 'interieur', label: 'Habitacle', court: 'Habitacle' },
+  { cle: 'tout', label: 'Tous les produits', court: 'Tous' },
+  { cle: 'avant', label: 'Housses de siège', court: 'Housses' },
+  { cle: 'arriere', label: 'Tapis de sol', court: 'Tapis' },
+  { cle: 'interieur', label: 'Bâches', court: 'Bâches' },
 ] as const
 
 export type Zone = (typeof ZONES)[number]['cle']
 
 const ZONE_PAR_EMPLACEMENT: Record<string, Exclude<Zone, 'tout'>> = {
-  LOW_BEAM: 'avant',
-  HIGH_BEAM: 'avant',
-  FOG: 'avant',
-  SIDELIGHT: 'avant',
-  TURN_FRONT: 'avant',
-  AUX: 'avant',
-  TURN_RELAY: 'avant',
-  STOP: 'arriere',
-  DASH: 'interieur',
-  FOG_REAR: 'arriere',
-  TURN_REAR: 'arriere',
-  PLATE: 'arriere',
-  REVERSE: 'arriere',
-  INTERIOR_DOME: 'interieur',
+  HOUSSES: 'avant',
+  HOUSSES_COMMANDE: 'avant',
+  HOUSSES_UNIVERSELLES: 'avant',
+  TAPIS: 'arriere',
+  TAPIS_COMMANDE: 'arriere',
+  TAPIS_UNIVERSELS: 'arriere',
+  BACHE: 'interieur',
 }
 
-/** La zone d'un emplacement, « avant » à défaut — c'est là que tout se voit. */
 export function zoneDeLEmplacement(code: string): Exclude<Zone, 'tout'> {
   return ZONE_PAR_EMPLACEMENT[code] ?? 'avant'
 }
 
 const NOM_ZONE: Record<Exclude<Zone, 'tout'>, string> = {
-  avant: 'Avant',
-  arriere: 'Arrière',
-  interieur: 'Habitacle',
+  avant: 'Housses',
+  arriere: 'Tapis',
+  interieur: 'Bâche',
 }
 
 /** « Avant », tel que la pastille de la vignette l'écrit. */
@@ -266,34 +259,25 @@ export function nomDeLaZone(zone: Exclude<Zone, 'tout'>): string {
  * description inventée pour un emplacement que le catalogue vient d'ajouter.
  */
 const SOUS_TITRE_PAR_EMPLACEMENT: Record<string, string> = {
-  LOW_BEAM: 'Éclairage principal à l’avant',
-  HIGH_BEAM: 'Éclairage longue portée',
-  FOG: 'Éclairage antibrouillard',
-  INTERIOR_DOME: 'Éclairage intérieur',
-  PLATE: 'Éclairage de la plaque arrière',
-  REVERSE: 'Éclairage en marche arrière',
-  SIDELIGHT: 'Feux de position avant',
-  TURN_FRONT: 'Signalisation à l’avant',
-  AUX: 'En plus des phares d’origine',
-  STOP: 'Feu arrière et feu stop',
-  DASH: 'Compteur et tableau de bord',
-  TURN_RELAY: 'Cadence normale avec des clignotants LED',
-  FOG_REAR: 'Feu de brouillard à l’arrière',
-  TURN_REAR: 'Signalisation à l’arrière',
+  HOUSSES: 'Taillées pour les sièges de ce véhicule',
+  HOUSSES_COMMANDE: 'Fabriquées à la commande, d’après votre description',
+  HOUSSES_UNIVERSELLES: 'S’adaptent à la plupart des sièges',
+  TAPIS: 'Découpés à la forme du plancher',
+  TAPIS_COMMANDE: 'Fabriqués à la commande',
+  TAPIS_UNIVERSELS: 'Pour la plupart des véhicules',
+  BACHE: 'Protection de la carrosserie',
 }
 
 const NOM_PAR_EMPLACEMENT: Record<string, string> = {
-  LOW_BEAM: 'Feux de croisement',
-  HIGH_BEAM: 'Feux de route',
-  FOG: 'Antibrouillards',
-  INTERIOR_DOME: 'Éclairage intérieur',
-  PLATE: 'Éclairage de plaque',
-  REVERSE: 'Feux de recul',
-  SIDELIGHT: 'Veilleuses',
-  TURN_FRONT: 'Clignotants avant',
+  HOUSSES: 'Housses de siège sur mesure',
+  HOUSSES_COMMANDE: 'Housses sur mesure à la commande',
+  HOUSSES_UNIVERSELLES: 'Housses universelles',
+  TAPIS: 'Tapis de sol sur mesure',
+  TAPIS_COMMANDE: 'Tapis sur mesure à la commande',
+  TAPIS_UNIVERSELS: 'Tapis universels',
+  BACHE: 'Bâche de protection',
 }
 
-/** Le libellé d'un emplacement, jamais son code technique (« TURN_FRONT »). */
 export function nomDeLEmplacement(code: string, label: string): string {
   return label && label !== code ? label : (NOM_PAR_EMPLACEMENT[code] ?? label)
 }

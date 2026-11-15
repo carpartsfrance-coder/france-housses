@@ -40,7 +40,7 @@ export function VehicleBar({
   /** `compact` sur les listes, `full` là où la compatibilité engage l'achat. */
   variant?: 'full' | 'compact'
 }) {
-  const Icon = vehicle?.type === 'MOTORCYCLE' ? IconMotorcycle : IconCar
+  const Icon = IconCar
 
   if (variant === 'compact') {
     return (

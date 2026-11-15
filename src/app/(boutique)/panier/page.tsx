@@ -20,6 +20,7 @@ import { Breadcrumb } from '@/components/catalogue/Breadcrumb'
 import { VehicleBar } from '@/components/vehicle/VehicleBar'
 import { cn } from '@/lib/cn'
 import { appliquerCodePromo, retirerCodePromo } from '@/lib/actions/cart'
+import { ReponsesQuestionnaire } from '@/components/product/ReponsesQuestionnaire'
 
 export const metadata: Metadata = {
   title: 'Panier',
@@ -246,6 +247,7 @@ export default async function PanierPage() {
                                 Ajouté comme accessoire nécessaire
                               </p>
                             ) : null}
+                            <ReponsesQuestionnaire reponses={line.answers} compact />
                           </div>
 
                           <div className="shrink-0 sm:text-right">

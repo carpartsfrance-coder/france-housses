@@ -11,6 +11,7 @@ import { Alert, Card } from '@/components/ui/Surface'
 import { IconTruck } from '@/components/ui/icons'
 import { emailIsSimulated } from '@/lib/email'
 import { formatPrice } from '@/lib/identity'
+import { ReponsesQuestionnaire } from '@/components/product/ReponsesQuestionnaire'
 
 /**
  * Confirmation de commande.
@@ -507,6 +508,7 @@ export default async function Page({
                       {line.variantName}
                       <span className="text-muted"> · Quantité {line.quantity}</span>
                     </p>
+                    <ReponsesQuestionnaire reponses={line.answers} />
                     {components.length > 0 ? (
                       <ul className="mt-2 flex flex-col gap-0.5 border-t border-line pt-2 text-xs text-muted">
                         {components.map((component, index) => (

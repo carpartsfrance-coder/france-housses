@@ -283,6 +283,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
             unitPriceCents: variant.priceCents,
             lineTotalCents: variant.priceCents * line.quantity,
             vatRateBp: variant.vatRate?.rateBp ?? 0,
+            // Réponses au questionnaire (véhicule, commentaire), figées.
+            answers: (line.answers ?? undefined) as Prisma.InputJsonValue | undefined,
             // L'instantané fige ce qui a été acheté : modifier le produit ou
             // une compatibilité plus tard ne doit pas réécrire l'historique.
             snapshot: {

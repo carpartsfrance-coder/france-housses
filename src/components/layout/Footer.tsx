@@ -44,7 +44,7 @@ export async function Footer() {
                 ...column,
                 items: [
                   ...sections.map((section) => ({
-                    label: section.kicker === 'Packs par marque' ? `Packs ${section.label}` : section.label,
+                    label: section.kicker === 'Housses & tapis' ? `Housses ${section.label.toLowerCase()}` : section.label,
                     href: section.href,
                   })),
                   { label: 'Toutes les catégories', href: '/c' },
@@ -66,8 +66,9 @@ export async function Footer() {
         }
       : null,
     dureeGarantie() ? { icon: IconShield, text: `Garantie ${dureeGarantie()} sur tous les produits` } : null,
-    promesseRetour() ? { icon: IconReturn, text: promesseRetour() as string } : null,
-    { icon: IconHeadset, text: 'Assistance au choix et au montage' },
+    { icon: IconTruck, text: 'Livraison 48 h en France, Belgique et Luxembourg (hors sur mesure)' },
+    { icon: IconReturn, text: 'Retours sous 14 jours (produits standard)' },
+    { icon: IconHeadset, text: 'Conseil du lundi au vendredi, 9h–12h et 14h–17h' },
     /*
       Société immatriculée en France, siège à Nice (identity.legal) : sur une
       boutique qu'il ne connaît pas, c'est une des premières choses que le
@@ -124,7 +125,7 @@ export async function Footer() {
                 </li>
               ) : null}
               {contact.phone ? (
-                <li className="mt-2 flex items-center gap-2.5 text-[9px]">
+                <li className="mt-2 flex items-center gap-2.5 text-[13px] lg:text-[11px]">
                   <a
                     href={`tel:${contact.phone.replace(/\s/g, '')}`}
                     className="text-[#bdc8ca] underline underline-offset-[3px] hover:text-white"
@@ -141,7 +142,8 @@ export async function Footer() {
         <div className="mt-[17px] block gap-5 text-[12px] leading-[1.8] lg:text-[11px] text-[#84949b] lg:mt-5 lg:flex lg:justify-between lg:leading-normal">
           <span className="block">
             © {year} {identity.name}
-            {hasLegalIdentity ? ` · ${legal.companyName}` : null}
+            {hasLegalIdentity && legal.companyName !== identity.name ? ` · ${legal.companyName}` : null}
+            {legal.legalForm ? ` · SAS au capital de ${legal.capital ?? ''}`.replace(/ de $/, '') : null}
             {legal.siret ? ` · SIRET ${legal.siret}` : null}
           </span>
 
@@ -159,8 +161,8 @@ export async function Footer() {
           une promesse valable pour tous les véhicules.
         */}
         <p className="mt-3 text-[12px] leading-[1.7] text-[#647c86] lg:text-[11px]">
-          * Selon le kit et le véhicule. Accessoires et contraintes de montage à vérifier sur la
-          fiche produit.
+          Photos d’illustration : les housses sur mesure reprennent la forme de vos sièges (voir le
+          croquis sur chaque fiche). Coloris et matières selon la gamme.
         </p>
 
         {/*

@@ -146,7 +146,7 @@ export const IMPORT_DEFINITIONS: Record<string, ImportDefinition> = {
         required: false,
         aliases: ['typevehicule', 'vehicule'],
         example: 'CAR',
-        help: 'CAR, MOTORCYCLE ou BOTH. Par défaut CAR.',
+        help: 'CAR (auto), VAN (utilitaire), MOTORHOME (camping-car), TRUCK (poids lourd) ou BOTH. Par défaut CAR.',
       },
     ],
   },

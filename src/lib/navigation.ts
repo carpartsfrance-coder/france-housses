@@ -15,7 +15,8 @@ export type NavItem = {
   children?: NavItem[]
 }
 
-export const topNav: Array<NavItem & { icon: 'return' | 'help' }> = [
+export const topNav: Array<NavItem & { icon: 'return' | 'help' | 'phone' }> = [
+  { label: '05 58 93 95 39', href: 'tel:+33558939539', icon: 'phone' },
   // Vers /aide et non /contact : l'entrée porte les deux mots, et la page
   // d'aide réunit le suivi, les questions publiées et le formulaire.
   //

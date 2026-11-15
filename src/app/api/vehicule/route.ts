@@ -6,10 +6,15 @@ import { VEHICLE_COOKIE } from '@/lib/session'
 
 const payloadSchema = z.object({
   modelId: z.string().min(1),
-  year: z.number().int().min(1950).max(new Date().getFullYear() + 1),
+  /** Ancien parcours par année (LEDVROOM), gardé pour les liens existants. */
+  year: z.number().int().min(1950).max(new Date().getFullYear() + 1).optional(),
+  /** Parcours France Housses : la version (génération) choisie dans la liste. */
+  generationId: z.string().min(1).optional(),
   /** Fourni au second passage, quand l'équipement d'origine a été choisi. */
   configurationId: z.string().min(1).optional(),
 })
+
+const CHEMINS: Record<string, string> = { CAR: 'auto', VAN: 'utilitaire', MOTORHOME: 'camping-car', TRUCK: 'poids-lourd' }
 
 /**
  * Enregistre le véhicule de la session.
@@ -30,9 +35,27 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: 'Véhicule incomplet.' }, { status: 400 })
   }
-  const { modelId, year, configurationId } = parsed.data
+  const { modelId, year, generationId, configurationId } = parsed.data
 
   try {
+    if (generationId) {
+      const choisie = await prisma.vehicleGeneration.findFirst({
+        where: { id: generationId, modelId, ...GENERATION_VISIBLE },
+        include: {
+          model: { include: { make: true } },
+          configurations: { where: { active: true }, select: { id: true }, take: 1 },
+        },
+      })
+      if (!choisie) return NextResponse.json({ error: 'Version inconnue.' }, { status: 404 })
+      const chemin = CHEMINS[choisie.model.make.type] ?? 'auto'
+      const page = `/vehicules/${chemin}/${choisie.model.make.slug}/${choisie.model.slug}/${choisie.slug}`
+      if (choisie.configurations.length === 0) return NextResponse.json({ redirect: page })
+      return setVehicle(choisie.configurations[0].id, page)
+    }
+    if (year === undefined) {
+      return NextResponse.json({ error: 'Véhicule incomplet.' }, { status: 400 })
+    }
+
     if (configurationId) {
       const config = await prisma.vehicleConfiguration.findFirst({
         where: { id: configurationId, active: true },

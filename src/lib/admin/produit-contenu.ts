@@ -156,7 +156,7 @@ export function isDifficulte(valeur: string): valeur is DifficulteValue {
 /* Type de véhicule                                                           */
 /* -------------------------------------------------------------------------- */
 
-export const TYPES_VEHICULE = ['CAR', 'MOTORCYCLE', 'BOTH'] as const
+export const TYPES_VEHICULE = ['CAR', 'VAN', 'MOTORHOME', 'TRUCK', 'BOTH'] as const
 
 /* Emprunté aux règles véhicule : un seul vocabulaire pour un seul enum. */
 export { VEHICLE_TYPE_LABELS }

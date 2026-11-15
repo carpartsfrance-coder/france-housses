@@ -117,7 +117,7 @@ export default async function Page() {
                       type: vehicle.type,
                       makeId: vehicle.selection.makeId,
                       modelId: vehicle.selection.modelId,
-                      year: vehicle.selection.year,
+                      generationId: vehicle.selection.generationId,
                     }
                   : null
               }

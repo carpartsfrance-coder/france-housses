@@ -6,11 +6,15 @@ import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/Button'
 import { SelectField } from '@/components/ui/Field'
 import { Alert } from '@/components/ui/Surface'
-import { IconArrowRight, IconCar, IconMotorcycle } from '@/components/ui/icons'
+import { IconArrowRight, IconCar } from '@/components/ui/icons'
 import { LienVehiculeAbsent } from './LienVehiculeAbsent'
 
 /**
- * Sélecteur de véhicule : marque → modèle → année.
+ * Sélecteur de véhicule : type → marque → modèle → version.
+ *
+ * FRANCE HOUSSES : quatre types (auto, utilitaire, camping-car, poids lourd)
+ * et une « version » (génération : « Clio 4 Estate, 2012–2019 ») à la place de
+ * l'année de LEDVROOM — c'est à ce niveau que les housses sont taillées.
  *
  * L'équipement lumineux d'origine n'est PAS demandé ici. Il est demandé juste
  * avant le choix du kit, parce que c'est lui — et non le culot — qui décide de
@@ -30,14 +34,22 @@ import { LienVehiculeAbsent } from './LienVehiculeAbsent'
  */
 
 type Option = { id: string; name: string }
-type VehicleType = 'CAR' | 'MOTORCYCLE'
+type Version = { id: string; name: string; years: string }
+type VehicleType = 'CAR' | 'VAN' | 'MOTORHOME' | 'TRUCK'
+
+const TYPES: Array<{ value: VehicleType; label: string }> = [
+  { value: 'CAR', label: 'Auto' },
+  { value: 'VAN', label: 'Utilitaire' },
+  { value: 'MOTORHOME', label: 'Camping-car' },
+  { value: 'TRUCK', label: 'Poids lourd' },
+]
 
 /** Sélection déjà enregistrée, pour rouvrir le formulaire là où on l'a laissé. */
 export type VehicleSelectorInitial = {
   type: VehicleType
   makeId: string
   modelId: string
-  year: number
+  generationId: string
 }
 
 export function VehicleSelector({
@@ -63,10 +75,10 @@ export function VehicleSelector({
   const [type, setType] = useState<VehicleType>(initial?.type ?? 'CAR')
   const [makes, setMakes] = useState<Option[]>([])
   const [models, setModels] = useState<Option[]>([])
-  const [years, setYears] = useState<number[]>([])
+  const [years, setYears] = useState<Version[]>([])
   const [makeId, setMakeId] = useState(initial?.makeId ?? '')
   const [modelId, setModelId] = useState(initial?.modelId ?? '')
-  const [year, setYear] = useState(initial ? String(initial.year) : '')
+  const [year, setYear] = useState(initial?.generationId ?? '')
 
   /*
     L'effet ci-dessous vide les champs quand on bascule voiture ↔ moto. Au
@@ -85,19 +97,6 @@ export function VehicleSelector({
     marques vide. La réponse vient du même point d'accès que la liste (en
     cache côté serveur) ; en attendant, l'onglet reste affiché comme avant.
   */
-  const [motoDisponible, setMotoDisponible] = useState(true)
-  useEffect(() => {
-    let cancelled = false
-    fetch('/api/vehicules/marques?type=MOTORCYCLE')
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('indisponible'))))
-      .then((data: { items?: Option[] }) => {
-        if (!cancelled) setMotoDisponible((data.items ?? []).length > 0)
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const typePrecedent = useRef(type)
   const [loading, setLoading] = useState(true)
@@ -157,10 +156,14 @@ export function VehicleSelector({
       return
     }
     let cancelled = false
-    fetch(`/api/vehicules/annees?modelId=${encodeURIComponent(modelId)}`)
+    fetch(`/api/vehicules/versions?modelId=${encodeURIComponent(modelId)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error('indisponible'))))
-      .then((data: { items: number[] }) => {
-        if (!cancelled) setYears(data.items ?? [])
+      .then((data: { items: Version[] }) => {
+        if (cancelled) return
+        const items = data.items ?? []
+        setYears(items)
+        // Une seule version : elle est choisie d'office.
+        if (items.length === 1) setYear(items[0].id)
       })
       .catch(() => {
         if (!cancelled) setYears([])
@@ -179,7 +182,7 @@ export function VehicleSelector({
       const response = await fetch('/api/vehicule', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ modelId, year: Number(year) }),
+        body: JSON.stringify({ modelId, generationId: year }),
       })
       const data = (await response.json()) as { redirect?: string; error?: string }
       if (!response.ok) throw new Error(data.error ?? 'Sélection impossible')
@@ -270,11 +273,11 @@ export function VehicleSelector({
         ? 'Choisir un modèle'
         : 'Choisissez une marque'
   const videAnnee = carte
-    ? "Choisir l'année"
+    ? 'Choisir la version'
     : inline
-      ? 'Année'
+      ? 'Version'
       : modelId
-        ? "Choisir l'année"
+        ? 'Choisir la version'
         : 'Choisissez un modèle'
   /*
     En carte, les champs occupent toute la largeur : l'invite entière y tient,
@@ -301,7 +304,6 @@ export function VehicleSelector({
         à ne venir d'aucun jeton. La pilule n'a besoin d'aucun accent — c'est
         le fond blanc qui désigne l'onglet actif.
       */}
-      {motoDisponible || type === 'MOTORCYCLE' ? (
       <div
         role="radiogroup"
         aria-label="Type de véhicule"
@@ -314,23 +316,13 @@ export function VehicleSelector({
               le saumon #e76b5d qui traînait ici du temps de la maquette de
               référence, et qui ne venait d'aucun jeton.
             */
-            ? 'mb-5 flex w-full gap-7 border-b border-line'
+            ? 'mb-5 flex w-full flex-wrap gap-x-5 border-b border-line'
             : 'inline-flex w-fit rounded-[9px] border border-line bg-surface-muted p-[3px]',
           inline && 'mb-[15px]',
         )}
       >
-        {(
-          [
-            /*
-              « Auto » et non « Voiture » : les deux mots valent, mais
-              « Auto / Moto » forment une paire de même registre, et c'est le
-              vocabulaire employé partout ailleurs sur le site — « Packs
-              auto », « Packs moto ».
-            */
-            { value: 'CAR' as const, label: 'Auto', Icon: IconCar },
-            { value: 'MOTORCYCLE' as const, label: 'Moto', Icon: IconMotorcycle },
-          ]
-        ).map(({ value, label, Icon }) => {
+        {TYPES.map(({ value, label }) => {
+          const Icon = IconCar
           const active = type === value
           return (
             <button
@@ -348,7 +340,7 @@ export function VehicleSelector({
                   de pixels à la hauteur de la carte pour deux mots.
                 */
                 carte
-                  ? 'touch-cible gap-2 border-b-2 pb-2 text-[15px]'
+                  ? 'touch-cible gap-2 border-b-2 pb-2 text-[14px]'
                   : 'min-h-11 gap-2 rounded-[7px] px-4 text-[13px]',
                 carte
                   ? active
@@ -365,7 +357,6 @@ export function VehicleSelector({
           )
         })}
       </div>
-      ) : null}
 
       {catalogueEmpty ? (
         <Alert tone="warn" title="Aucun véhicule n'est encore référencé.">
@@ -396,7 +387,7 @@ export function VehicleSelector({
                 rangée entière. La ligne unique n'a de sens que là où elle ne
                 reprend pas d'une main ce qu'elle donne de l'autre.
               */
-              ? 'grid grid-cols-[1fr_2fr] items-end gap-3 lg:grid-cols-[1fr_1.2fr_0.8fr_auto] [&>*:nth-child(-n+2)]:col-span-2 lg:[&>*:nth-child(-n+2)]:col-span-1'
+              ? 'grid grid-cols-1 items-end gap-3 lg:grid-cols-[1fr_1fr_1.4fr_auto]'
               : carte
                 /*
                   Une colonne, quelle que soit la fenêtre. C'est tout l'objet
@@ -455,7 +446,7 @@ export function VehicleSelector({
 
           <SelectField
             id={`${baseId}-year`}
-            label="Année"
+            label="Version"
             hideLabel={false}
             fieldSize="lg"
             className={champCarte}
@@ -465,9 +456,9 @@ export function VehicleSelector({
             onChange={(event) => setYear(event.target.value)}
           >
             <option value="">{videAnnee}</option>
-            {years.map((value) => (
-              <option key={value} value={value}>
-                {value}
+            {years.map((version) => (
+              <option key={version.id} value={version.id}>
+                {version.name} ({version.years})
               </option>
             ))}
           </SelectField>
@@ -501,8 +492,8 @@ export function VehicleSelector({
                 ? 'Mettre à jour'
                 : /* Libellé de la maquette, plus direct que « Voir mes éclairages ». */
                   carte
-                  ? 'Trouver mes LED'
-                  : 'Voir mes éclairages'}
+                  ? 'Trouver mes housses'
+                  : 'Voir les produits'}
           </Button>
         </div>
       )}

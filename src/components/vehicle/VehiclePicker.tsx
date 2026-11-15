@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/cn'
 import { BrandMark } from '@/components/vehicules/BrandMark'
-import { IconCar, IconChevronRight, IconMotorcycle, IconSearch } from '@/components/ui/icons'
+import { IconCar, IconChevronRight, IconSearch } from '@/components/ui/icons'
 import { LienVehiculeAbsent } from './LienVehiculeAbsent'
 
 /**
@@ -29,21 +29,31 @@ import { LienVehiculeAbsent } from './LienVehiculeAbsent'
  * l'écran d'équipement quand une année en compte plusieurs (comme avant).
  */
 
-type VehicleType = 'CAR' | 'MOTORCYCLE'
+type VehicleType = 'CAR' | 'VAN' | 'MOTORHOME' | 'TRUCK'
+type Version = { id: string; name: string; years: string }
 type Marque = { id: string; name: string; logo?: string | null }
 type Modele = { id: string; name: string }
 type Etape = 'marque' | 'modele' | 'annee'
 
-export type VehiclePickerInitial = { type: VehicleType; makeId: string; modelId: string; year: number }
+export type VehiclePickerInitial = { type: VehicleType; makeId: string; modelId: string; generationId: string }
 
 /** Les marques les plus vendues en France, montrées en premier quand elles sont au catalogue. */
 const COURANTES: Record<VehicleType, string[]> = {
   CAR: [
-    'Renault', 'Peugeot', 'Citroën', 'Volkswagen', 'Dacia', 'Toyota',
-    'BMW', 'Audi', 'Mercedes-Benz', 'Ford', 'Opel', 'Fiat',
+    'Renault', 'Peugeot', 'Citroen', 'Volkswagen', 'Dacia', 'Toyota',
+    'BMW', 'Audi', 'Mercedes', 'Ford', 'Opel', 'Fiat',
   ],
-  MOTORCYCLE: ['Yamaha', 'Honda', 'Kawasaki', 'Suzuki', 'BMW', 'KTM', 'Triumph', 'Ducati'],
+  VAN: ['Renault', 'Peugeot', 'Citroen', 'Ford', 'Fiat', 'Mercedes', 'Volkswagen', 'Iveco'],
+  MOTORHOME: ['Fiat', 'Chausson', 'Rapido', 'Pilote', 'Burstner', 'Hymer', 'Challenger', 'Adria'],
+  TRUCK: ['Renault', 'Mercedes', 'Volvo', 'Scania', 'DAF', 'MAN', 'Iveco', 'Ford'],
 }
+
+const TYPES: Array<{ v: VehicleType; label: string }> = [
+  { v: 'CAR', label: 'Auto' },
+  { v: 'VAN', label: 'Utilitaire' },
+  { v: 'MOTORHOME', label: 'Camping-car' },
+  { v: 'TRUCK', label: 'Poids lourd' },
+]
 
 const sansAccent = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
@@ -68,22 +78,15 @@ export function VehiclePicker({
   const [etape, setEtape] = useState<Etape>('marque')
   const [marques, setMarques] = useState<Marque[] | null>(null)
   const [modeles, setModeles] = useState<Modele[] | null>(null)
-  const [annees, setAnnees] = useState<number[] | null>(null)
+  const [annees, setAnnees] = useState<Version[] | null>(null)
   const [marque, setMarque] = useState<Marque | null>(null)
   const [modele, setModele] = useState<Modele | null>(null)
   const [recherche, setRecherche] = useState('')
-  const [envoi, setEnvoi] = useState<number | null>(null)
+  const [envoi, setEnvoi] = useState<string | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
-  const [motoDisponible, setMotoDisponible] = useState(true)
   const champ = useRef<HTMLInputElement>(null)
   const corps = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    fetch('/api/vehicules/marques?type=MOTORCYCLE')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: { items?: Marque[] } | null) => d && setMotoDisponible((d.items ?? []).length > 0))
-      .catch(() => {})
-  }, [])
 
   // Marques du type choisi.
   useEffect(() => {
@@ -126,9 +129,9 @@ export function VehiclePicker({
     if (!modele) return
     let annule = false
     setAnnees(null)
-    fetch(`/api/vehicules/annees?modelId=${encodeURIComponent(modele.id)}`)
+    fetch(`/api/vehicules/versions?modelId=${encodeURIComponent(modele.id)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error())))
-      .then((d: { items: number[] }) => !annule && setAnnees(d.items ?? []))
+      .then((d: { items: Version[] }) => !annule && setAnnees(d.items ?? []))
       .catch(() => !annule && setAnnees([]))
     return () => {
       annule = true
@@ -154,7 +157,7 @@ export function VehiclePicker({
     setEtape('annee')
   }
 
-  async function choisirAnnee(annee: number) {
+  async function choisirAnnee(annee: string) {
     if (!modele || envoi) return
     setEnvoi(annee)
     setErreur(null)
@@ -162,7 +165,7 @@ export function VehiclePicker({
       const reponse = await fetch('/api/vehicule', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ modelId: modele.id, year: annee }),
+        body: JSON.stringify({ modelId: modele.id, generationId: annee }),
       })
       const data = (await reponse.json()) as { redirect?: string; error?: string }
       if (!reponse.ok) throw new Error(data.error ?? 'Sélection impossible')
@@ -191,21 +194,15 @@ export function VehiclePicker({
     [modeles, filtre],
   )
 
-  const Moto = type === 'MOTORCYCLE'
   const nomModele = modele ? decouper(modele.name).nom : null
 
   return (
     <div className={cn('flex min-h-0 flex-col', className)}>
       {/* ---- Fil de l'étape : type, marque, modèle, année ---- */}
       <div className="flex flex-wrap items-center gap-x-1 gap-y-2 border-b border-line px-5 pb-4 sm:px-6">
-        {motoDisponible || Moto ? (
-          <div role="radiogroup" aria-label="Type de véhicule" className="mr-2 inline-flex rounded-full bg-surface-muted p-1">
-            {(
-              [
-                { v: 'CAR' as const, label: 'Auto', Icon: IconCar },
-                { v: 'MOTORCYCLE' as const, label: 'Moto', Icon: IconMotorcycle },
-              ]
-            ).map(({ v, label, Icon }) => (
+        {(
+          <div role="radiogroup" aria-label="Type de véhicule" className="mr-2 inline-flex flex-wrap rounded-full bg-surface-muted p-1">
+            {TYPES.map(({ v, label }) => (
               <button
                 key={v}
                 type="button"
@@ -223,12 +220,12 @@ export function VehiclePicker({
                   type === v ? 'bg-white text-ink shadow-soft' : 'text-muted-strong hover:text-ink',
                 )}
               >
-                <Icon className="size-[18px]" />
+                {v === 'CAR' ? <IconCar className="size-[18px]" /> : null}
                 {label}
               </button>
             ))}
           </div>
-        ) : null}
+        )}
 
         <nav aria-label="Étapes" className="flex min-w-0 flex-wrap items-center gap-1 text-[14px]">
           <EtapeFil actif={etape === 'marque'} fait={Boolean(marque)} onClick={() => setEtape('marque')}>
@@ -245,7 +242,7 @@ export function VehiclePicker({
           </EtapeFil>
           <IconChevronRight aria-hidden="true" className="size-4 text-[#b5b5b5]" />
           <EtapeFil actif={etape === 'annee'} fait={false} disabled={!modele} onClick={() => modele && setEtape('annee')}>
-            {envoi ? String(envoi) : 'Année'}
+            {envoi ? 'Version choisie' : 'Version'}
           </EtapeFil>
         </nav>
       </div>
@@ -269,7 +266,7 @@ export function VehiclePicker({
               }}
               placeholder={
                 etape === 'marque'
-                  ? Moto ? 'Rechercher une marque : Yamaha, Honda…' : 'Rechercher une marque : Renault, Peugeot…'
+                  ? 'Rechercher une marque : Renault, Peugeot…'
                   : `Rechercher un modèle ${marque?.name ?? ''}`.trim()
               }
               autoComplete="off"
@@ -346,36 +343,26 @@ export function VehiclePicker({
         ) : (
           <>
             <p className="m-0 mb-4 text-[15px] text-ink">
-              Année de mise en circulation de votre {marque?.name} {nomModele} :
+              Quelle version de {marque?.name} {nomModele} ?
             </p>
             {annees === null ? (
               <Chargement />
             ) : annees.length === 0 ? (
-              <Vide texte="Aucune année disponible pour ce modèle." />
+              <Vide texte="Aucune version disponible pour ce modèle." />
             ) : (
-              <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                {[...annees].sort((a, b) => b - a).map((a) => (
-                  <li key={a}>
-                    <button
-                      type="button"
-                      disabled={envoi !== null}
-                      onClick={() => choisirAnnee(a)}
-                      className={cn(
-                        'h-12 w-full rounded-xl border text-[16px] font-semibold tabular-nums transition-colors disabled:cursor-wait',
-                        envoi === a
-                          ? 'border-ink bg-ink text-white'
-                          : 'border-line text-ink hover:border-ink',
-                        initial && modele?.id === initial.modelId && initial.year === a && envoi === null && 'border-ink',
-                      )}
-                    >
-                      {envoi === a ? '…' : a}
-                    </button>
+              <ul>
+                {annees.map((a) => (
+                  <li key={a.id}>
+                    <Ligne onClick={() => envoi === null && choisirAnnee(a.id)} actif={envoi === a.id || (!!initial && initial.generationId === a.id && envoi === null)}>
+                      <span className="flex-1 text-[15px] font-semibold">{a.name}</span>
+                      <span className="text-[14px] text-muted-strong tabular-nums">{envoi === a.id ? '…' : a.years}</span>
+                    </Ligne>
                   </li>
                 ))}
               </ul>
             )}
             <p className="mt-4 text-[13px] text-muted-strong">
-              L’année figure sur la carte grise, case B (date de première immatriculation).
+              L’année figure sur la carte grise, case B (date de première immatriculation). Vérifiez aussi le nombre de places.
             </p>
             {erreur ? <p role="alert" className="mt-3 text-[14px] font-semibold text-danger">{erreur}</p> : null}
           </>

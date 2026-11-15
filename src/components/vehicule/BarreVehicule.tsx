@@ -50,7 +50,7 @@ export function BarreVehicule({
       {nombreDePacks > 0 ? (
         <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-ok-soft px-[9px] py-[5px] text-[11px] font-bold whitespace-nowrap text-ok max-[470px]:col-start-2">
           <IconCheckCircle className="size-3.5 shrink-0" />
-          {nombreDePacks} pack{nombreDePacks > 1 ? 's' : ''} compatible
+          {nombreDePacks} produit{nombreDePacks > 1 ? 's' : ''} compatible
           {nombreDePacks > 1 ? 's' : ''}
         </span>
       ) : null}

@@ -55,6 +55,9 @@ export function presentationDeCarte(
   conditionnement: string | null,
 ): { titre: string | null; phrase: string | null } {
   const nom = nomDuProduit.trim()
+  // FRANCE HOUSSES : le nom de la fiche dit la gamme et la configuration des
+  // sièges ; c'est lui qui distingue deux cartes du même véhicule.
+  if (nom) return { titre: nom, phrase: conditionnement }
   const regle = REGLES.find(([re]) => re.test(nom))
   if (regle) return { titre: regle[1], phrase: regle[2] }
   const type = typeDeProduit(nom)

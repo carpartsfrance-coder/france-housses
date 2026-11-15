@@ -53,7 +53,7 @@ export function FaqHelpSection({ faq, help }: FaqHelpSectionProps) {
           <div className="block gap-[75px] lg:grid lg:grid-cols-[0.8fr_1.2fr]">
             <div>
               <p className="mb-2.5 text-[7px] font-bold tracking-[1.2px] text-brand uppercase lg:text-[8px] lg:tracking-[1.6px]">
-                Avant de passer au blanc
+                Avant de commander
               </p>
               <h2
                 id={FAQ_TITLE_ID}

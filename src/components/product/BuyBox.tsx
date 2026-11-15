@@ -17,6 +17,12 @@ import { Alert } from '@/components/ui/Surface'
 import { RoadApprovalNote } from '@/components/ui/Badge'
 import { nomUtileDuConditionnement } from '@/lib/nom-conditionnement'
 import {
+  champsVisibles,
+  lireChamps,
+  lireDependances,
+  type Questionnaire,
+} from '@/lib/questionnaire'
+import {
   IconCart,
   IconMinus,
   IconPlus,
@@ -80,7 +86,18 @@ export function BuyBox({
   moto = false,
   contentAnchor = '#dans-votre-kit',
   vehiculeDesComplements = null,
+  questionnaire = null,
+  madeToMeasure = false,
+  leadTimeDays = null,
+  scope = 'VEHICLE',
 }: {
+  /** Questionnaire de la fiche (véhicule à décrire, commentaire). */
+  questionnaire?: Questionnaire | null
+  /** Fabriqué aux mesures : pas de droit de rétractation. */
+  madeToMeasure?: boolean
+  /** Délai de fabrication ou de préparation, en jours ouvrés. */
+  leadTimeDays?: number | null
+  scope?: 'VEHICLE' | 'MADE_TO_ORDER' | 'UNIVERSAL'
   productName: string
   /** Premier visuel du produit : la barre fixe rappelle ce qu'on achète. */
   thumbnail: { url: string; alt: string } | null
@@ -128,6 +145,13 @@ export function BuyBox({
   }
 
   const [acceptedAccessories, setAcceptedAccessories] = useState<string[]>([])
+
+  /* Questionnaire (France Housses) : réponses en cours, par identifiant de champ. */
+  const champs = useMemo(() => lireChamps(questionnaire), [questionnaire])
+  const dependances = useMemo(() => lireDependances(questionnaire), [questionnaire])
+  const [reponses, setReponses] = useState<Record<string, string>>({})
+  const visibles = champsVisibles(champs, dependances, reponses)
+  const questionnaireVehicule = champs.length > 1
 
   /*
     Quantité demandée. Elle était figée à 1 : le bouton envoyait toujours une
@@ -255,6 +279,9 @@ export function BuyBox({
         variantId: selected.id,
         quantity: quantite,
         extraVariantIds: acceptedAccessories,
+        answers: visibles
+          .map((champ) => ({ id: champ.id, value: reponses[champ.id] ?? '' }))
+          .filter((reponse) => reponse.value.trim() !== ''),
       })
       if (result.ok) {
         setFeedback({
@@ -358,10 +385,9 @@ export function BuyBox({
         </Alert>
       ) : null}
 
-      {!vehicleLabel && !concuPour ? (
+      {!vehicleLabel && !concuPour && scope === 'VEHICLE' ? (
         <Alert tone="info" title="Indiquez votre véhicule." className="mb-5">
-          Le bon éclairage dépend du bloc optique et de l&apos;équipement d&apos;origine, pas
-          seulement du culot.{' '}
+          Une housse sur mesure dépend de la version et du nombre de places.{' '}
           <Link href="/vehicule" className="font-semibold underline underline-offset-4">
             Choisir mon véhicule
           </Link>{' '}
@@ -380,6 +406,77 @@ export function BuyBox({
             setFeedback(null)
           }}
         />
+      ) : null}
+
+      {/* ---- Questionnaire (France Housses) ---- */}
+      {visibles.length > 0 ? (
+        <fieldset className="mb-4 rounded-xl border border-line bg-surface-soft p-4">
+          <legend className="sr-only">{questionnaireVehicule ? 'Votre véhicule' : 'Commentaire'}</legend>
+          {questionnaireVehicule ? (
+            <>
+              <p className="text-[15px] font-bold text-ink">Votre véhicule</p>
+              <p className="mt-1 mb-3 text-[13px] text-muted-strong">
+                Nous fabriquons d’après ces informations : la carte grise vous aide (marque, modèle,
+                date de première mise en circulation).
+              </p>
+            </>
+          ) : null}
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {visibles.map((champ) => {
+              const id = `q-${champ.id}`
+              const large = champ.type === 'textarea' || (champ.options?.length ?? 0) > 6 || champ.label.length > 34
+              return (
+                <label key={champ.id} htmlFor={id} className={cn('grid gap-1 text-[13px] font-semibold text-ink', large && 'sm:col-span-2')}>
+                  <span>
+                    {champ.label}
+                    {champ.required ? <span className="text-brand"> *</span> : null}
+                  </span>
+                  {champ.type === 'select' ? (
+                    <select
+                      id={id}
+                      value={reponses[champ.id] ?? ''}
+                      required={champ.required}
+                      onChange={(e) => setReponses((r) => ({ ...r, [champ.id]: e.target.value }))}
+                      className="min-h-10 rounded-[6px] border border-line-strong bg-white px-2.5 text-[14px] font-normal text-ink"
+                    >
+                      <option value="">Choisir…</option>
+                      {(champ.options ?? []).map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : champ.type === 'textarea' ? (
+                    <textarea
+                      id={id}
+                      rows={3}
+                      maxLength={1000}
+                      value={reponses[champ.id] ?? ''}
+                      placeholder={
+                        questionnaireVehicule
+                          ? 'Une précision sur vos sièges ?'
+                          : 'Une précision sur votre véhicule ou vos sièges ? (facultatif)'
+                      }
+                      onChange={(e) => setReponses((r) => ({ ...r, [champ.id]: e.target.value }))}
+                      className="rounded-[6px] border border-line-strong bg-white px-2.5 py-2 text-[14px] font-normal text-ink"
+                    />
+                  ) : (
+                    <input
+                      id={id}
+                      type="text"
+                      maxLength={200}
+                      required={champ.required}
+                      value={reponses[champ.id] ?? ''}
+                      placeholder={champ.placeholder ?? undefined}
+                      onChange={(e) => setReponses((r) => ({ ...r, [champ.id]: e.target.value }))}
+                      className="min-h-10 rounded-[6px] border border-line-strong bg-white px-2.5 text-[14px] font-normal text-ink"
+                    />
+                  )}
+                </label>
+              )
+            })}
+          </div>
+        </fieldset>
       ) : null}
 
       {/* ---- .pack-heading + .pack-options ---- */}
@@ -713,6 +810,19 @@ export function BuyBox({
         </Alert>
       ) : null}
 
+      {/* ---- Fabrication à la commande (France Housses) ---- */}
+      {leadTimeDays ? (
+        <p className="mt-3.5 flex items-start gap-2 text-[14px] text-[#3c4047]">
+          <IconWrench className="mt-0.5 size-[18px] shrink-0 text-ok" />
+          <span className="min-w-0 flex-1">
+            <strong className="text-ink">
+              {madeToMeasure ? 'Fabrication' : 'Préparation'} : {leadTimeDays} jours ouvrés
+            </strong>
+            {' '}puis expédition
+          </span>
+        </p>
+      ) : null}
+
       {/* ---- .shipping : le délai, et le lien vers les conditions ---- */}
       {delivery ? (
         <p className="mt-3.5 flex items-start gap-2 text-[14px] text-[#3c4047]">
@@ -738,7 +848,12 @@ export function BuyBox({
             Garantie {garantie}
           </Link>
         ) : null}
-        {returnWindowDays ? (
+        {madeToMeasure ? (
+          <Link href="/livraison-retours#retours" className="flex items-center gap-1.5 hover:underline">
+            <IconReturn className="size-4 shrink-0" />
+            Sur mesure : pas de rétractation
+          </Link>
+        ) : returnWindowDays ? (
           <span className="flex items-center gap-1.5">
             <IconReturn className="size-4 shrink-0" />
             {commercialTerms.satisfaitDays
@@ -752,7 +867,7 @@ export function BuyBox({
         </span>
         <Link href="/contact" className="flex items-center gap-1.5 hover:underline">
           <IconWrench className="size-4 shrink-0" />
-          Assistance au montage
+          Conseil avant la commande
         </Link>
       </div>
 
@@ -911,7 +1026,7 @@ function SelecteurQuantite({
   une liste déroulante par option (comme le configurateur du concurrent) plutôt
   qu'une carte par combinaison.
 */
-type VarianteNommee = { id: string; name: string; priceCents: number }
+type VarianteNommee = { id: string; name: string; priceCents: number; swatch?: string | null }
 
 function decouper(nom: string): [string, string][] | null {
   const parts = nom.split(' · ').map((x) => x.split(' : '))
@@ -949,7 +1064,7 @@ function ChoixDOptions({
   return (
     <fieldset className="mb-4 rounded-xl bg-[#111214] p-4 text-white">
       <legend className="sr-only">Configuration</legend>
-      <p className="text-[15px] font-bold">Configuration</p>
+      <p className="text-[15px] font-bold">Votre choix</p>
       <p className="mt-1 mb-3 text-[13px] text-[#c9ccd1]">
         {new Set(variants.map((v) => v.priceCents)).size > 1
           ? 'Le prix change selon les options choisies.'
@@ -965,6 +1080,55 @@ function ChoixDOptions({
                 .map((x) => x[rang][1]),
             ),
           ]
+          /*
+            Nuancier (France Housses) : pour la couleur, des pastilles plutôt
+            qu'une liste — le tissu se choisit à l'œil.
+          */
+          const pastilles = /^couleur/i.test(libelle)
+            ? possibles.map((valeur) => {
+                const v = variants.find(
+                  (variante, i) =>
+                    o.valeurs[i][rang][1] === valeur &&
+                    o.valeurs[i].slice(0, rang).every(([, x], k) => x === courant[k][1]),
+                )
+                return { valeur, swatch: v?.swatch ?? null }
+              })
+            : null
+          if (pastilles && pastilles.some((p) => p.swatch)) {
+            return (
+              <div key={libelle} className="grid gap-2 text-[13px] font-semibold">
+                <span>
+                  {libelle} : <span className="font-normal text-[#c9ccd1]">{courant[rang][1]}</span>
+                </span>
+                <div role="radiogroup" aria-label={libelle} className="flex flex-wrap gap-2">
+                  {pastilles.map(({ valeur, swatch }) => {
+                    const actif = valeur === courant[rang][1]
+                    const image = swatch && !swatch.startsWith('#')
+                    return (
+                      <button
+                        key={valeur}
+                        type="button"
+                        role="radio"
+                        aria-checked={actif}
+                        aria-label={valeur}
+                        title={valeur}
+                        onClick={() => choisir(rang, valeur)}
+                        className={cn(
+                          'size-10 rounded-full border-2 bg-cover bg-center transition-transform hover:scale-105',
+                          actif ? 'border-white ring-2 ring-brand' : 'border-white/30',
+                        )}
+                        style={
+                          image
+                            ? { backgroundImage: `url(${swatch})` }
+                            : { backgroundColor: swatch ?? '#888' }
+                        }
+                      />
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          }
           return (
             <label key={libelle} className="grid gap-1 text-[13px] font-semibold sm:grid-cols-[150px_1fr] sm:items-center">
               <span>{libelle}</span>

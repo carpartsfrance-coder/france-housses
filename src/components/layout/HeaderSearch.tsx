@@ -98,7 +98,7 @@ export function HeaderSearch({ compact = false }: { compact?: boolean }) {
         className="flex"
       >
         <label htmlFor={inputId} className="sr-only">
-          Rechercher une ampoule, une référence ou un culot
+          Rechercher un produit, un véhicule ou une référence
         </label>
 
         {/*
@@ -127,7 +127,7 @@ export function HeaderSearch({ compact = false }: { compact?: boolean }) {
             onBlur={() => {
               blurTimer.current = setTimeout(() => setOpen(false), 120)
             }}
-            placeholder={compact ? 'Ex. : clio 4 veilleuses, H7…' : 'Votre véhicule et l’éclairage : clio 4 veilleuses…'}
+            placeholder={compact ? 'Ex. : clio 4, tapis caoutchouc…' : 'Votre véhicule ou un produit : clio 4, tapis…'}
             autoComplete="off"
             role="combobox"
             aria-expanded={open}

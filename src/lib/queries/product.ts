@@ -80,6 +80,8 @@ export type VariantView = {
   image: { url: string; alt: string } | null
   /** La même option, produit allumé. */
   imageAllumee: { url: string; alt: string } | null
+  /** Pastille du nuancier (couleur #rrggbb ou image de tissu), si l'option en a une. */
+  swatch: string | null
 }
 
 export type ProductView = {
@@ -96,6 +98,14 @@ export type ProductView = {
   colorTemperature: number | null
   difficulty: 'UNKNOWN' | 'EASY' | 'MEDIUM' | 'HARD'
   vehicleType: 'CAR' | 'VAN' | 'MOTORHOME' | 'TRUCK' | 'MOTORCYCLE' | 'BOTH'
+  /** Portée : véhicule précis, sur mesure à la commande, ou universel. */
+  scope: 'VEHICLE' | 'MADE_TO_ORDER' | 'UNIVERSAL'
+  /** Fabriqué aux mesures du client : exclu du droit de rétractation. */
+  madeToMeasure: boolean
+  /** Délai de fabrication ou de préparation, en jours ouvrés. */
+  leadTimeDays: number | null
+  /** Questionnaire à remplir avant l'ajout au panier. */
+  questionnaire: { fields: unknown; dependencies: unknown } | null
   metaTitle: string | null
   metaDescription: string | null
   category: { slug: string; name: string } | null
@@ -174,6 +184,7 @@ const lireFiche = cache((slug: string, brouillon: boolean) =>
     where: { slug, status: brouillon ? { in: ['PUBLISHED', 'DRAFT'] } : 'PUBLISHED' },
     include: {
       categories: { include: { category: true }, orderBy: { position: 'asc' }, take: 1 },
+      questionnaire: { select: { fields: true, dependencies: true } },
       media: { include: { media: true }, orderBy: { position: 'asc' } },
       specs: { orderBy: { position: 'asc' } },
       faqItems: { orderBy: { position: 'asc' } },
@@ -297,6 +308,7 @@ export async function getProduct(
         imageAllumee: variant.imageAllumee
           ? { url: variant.imageAllumee.url, alt: variant.imageAllumee.alt ?? `${product.name} allumé — ${variant.name}` }
           : null,
+        swatch: variant.swatch,
         packaging: variant.packaging,
         priceCents: variant.priceCents,
         compareAtCents: variant.compareAtCents,
@@ -391,6 +403,12 @@ export async function getProduct(
       colorTemperature: product.colorTemperature,
       difficulty: product.difficulty,
       vehicleType: product.vehicleType,
+      scope: product.scope,
+      madeToMeasure: product.madeToMeasure,
+      leadTimeDays: product.leadTimeDays,
+      questionnaire: product.questionnaire
+        ? { fields: product.questionnaire.fields, dependencies: product.questionnaire.dependencies }
+        : null,
       metaTitle: product.metaTitle,
       metaDescription: product.metaDescription,
       category: product.categories[0]

@@ -1,4 +1,5 @@
 import 'server-only'
+import { lireReponses, type ReponseFigee } from './questionnaire'
 import { cookies } from 'next/headers'
 import { randomBytes } from 'node:crypto'
 import { prisma } from './db'
@@ -58,6 +59,8 @@ export type CartLineView = {
   /** Renseigné quand la ligne a été ajoutée parce qu'un montage l'exige. */
   requiredBy: string | null
   productId: string
+  /** Réponses au questionnaire de la fiche (véhicule, commentaire). */
+  answers: ReponseFigee[]
 }
 
 export type CartView = {
@@ -120,6 +123,7 @@ export async function getCart(configurationId: string | null = null): Promise<Ca
             variant: {
               include: {
                 vatRate: true,
+                image: { select: { url: true, alt: true } },
                 product: {
                   include: {
                     media: {
@@ -157,7 +161,8 @@ export async function getCart(configurationId: string | null = null): Promise<Ca
           )
         : availabilityForVariant(variant)
 
-      const cover = couverture(variant.product.media)?.media ?? couvertureType(variant.product)
+      // La photo de l'option choisie (le coloris) d'abord, sinon celle de la fiche.
+      const cover = variant.image ?? couverture(variant.product.media)?.media ?? couvertureType(variant.product)
 
       return {
         id: line.id,
@@ -182,6 +187,7 @@ export async function getCart(configurationId: string | null = null): Promise<Ca
         availability,
         requiredBy: line.requiredBy,
         productId: variant.product.id,
+        answers: lireReponses(line.answers),
       }
     })
 

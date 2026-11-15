@@ -57,7 +57,7 @@ type PageProps = {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { type, marque, modele, generation } = await params
   const vehicleType = TYPE_PAR_CHEMIN[type]
-  if (!vehicleType) return { title: 'Packs par véhicule' }
+  if (!vehicleType) return { title: 'Housses par véhicule' }
 
   const lecture = await getPackGeneration(vehicleType, marque, modele, generation)
   // Une lecture en échec ne titre pas « introuvable » : on ne l'a pas constaté.
@@ -77,18 +77,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   */
     return lecture.state === 'absent'
       ? { title: 'Véhicule introuvable', robots: { index: false, follow: false } }
-      : { title: 'Packs par véhicule' }
+      : { title: 'Housses par véhicule' }
   }
 
   const data = lecture.data
   const emplacements = [...new Set(data.groups.map((groupe) => groupe.label))]
   return {
-    title: `Éclairage ${data.makeName} ${data.generationName} ${data.years}`,
+    title: `Housses de siège et tapis ${data.makeName} ${data.generationName} (${data.years})`,
     description: [
       emplacements.length > 0
-        ? `Packs LED pour ${data.makeName} ${data.generationName} (${data.years}) : ${emplacements.slice(0, 5).join(', ').toLowerCase()}${emplacements.length > 5 ? '…' : '.'}`
-        : `Éclairage LED pour ${data.makeName} ${data.generationName} (${data.years}).`,
-      'Composés pour votre véhicule, à monter à la place des ampoules d’origine.',
+        ? `Pour ${data.makeName} ${data.generationName} (${data.years}) : ${emplacements.slice(0, 5).join(', ').toLowerCase()}${emplacements.length > 5 ? '…' : '.'}`
+        : `Housses de siège et tapis pour ${data.makeName} ${data.generationName} (${data.years}).`,
+      'Fabriqués pour votre véhicule par France Housses, depuis 1986.',
       dureeGarantie() ? `Garantie ${dureeGarantie()}.` : '',
     ]
       .filter(Boolean)
@@ -152,12 +152,12 @@ export default async function PacksGenerationPage({ params }: PageProps) {
 
       <BandeauVehicule
         surtitre={`${data.makeName} ${data.generationName} · ${data.years}`}
-        titre="Éclairage LED"
+        titre="Housses & tapis"
         sousTitre={`pour ${data.makeName} ${data.generationName}`}
         description={
           totalProduits > 0
-            ? 'Trouvez le bon pack, des phares au plafonnier.'
-            : 'Aucun éclairage n’est encore documenté pour cette génération.'
+            ? 'Housses de siège, tapis de sol et protections pour ce véhicule.'
+            : 'Aucun produit n’est encore en ligne pour cette version.'
         }
         marque={data.makeName}
         logo={data.makeLogo}
@@ -168,7 +168,7 @@ export default async function PacksGenerationPage({ params }: PageProps) {
               className="min-h-[43px] gap-2.5 rounded-lg px-[15px] text-[12px]"
               iconRight={<IconArrowRight className="size-4 rotate-90" />}
             >
-              Voir les {totalProduits} pack{totalProduits > 1 ? 's' : ''}
+              Voir les {totalProduits} produit{totalProduits > 1 ? 's' : ''}
             </ButtonLink>
           ) : null
         }
@@ -178,7 +178,7 @@ export default async function PacksGenerationPage({ params }: PageProps) {
         nom={`${data.makeName} ${data.generationName}`}
         annees={data.years}
         nombreDePacks={totalProduits}
-        moto={vehicleType === 'MOTORCYCLE'}
+        moto={false}
         action={
           vehiculeChoisi ? (
             <span className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-ok-border bg-ok-soft px-3 text-[12px] font-bold text-ok">
@@ -237,25 +237,25 @@ export default async function PacksGenerationPage({ params }: PageProps) {
       {totalProduits === 0 ? (
         <EmptyState
           className="mt-6"
-          title="Aucun éclairage n'est encore documenté pour cette génération."
-          description="Les compatibilités sont relevées véhicule par véhicule. Dites-nous lequel vous avez : nous les vérifions et vous répondons."
-          action={{ label: 'Faire vérifier mon véhicule', href: '/verification' }}
+          title="Aucun produit n'est encore en ligne pour cette version."
+          description="Nous fabriquons aussi sur mesure à la commande. Décrivez-nous votre véhicule : nous vous répondons avec la bonne housse."
+          action={{ label: 'Nous contacter', href: '/contact' }}
         />
       ) : (
         <>
           <section id="packs" className="mt-[25px] scroll-mt-4">
             <div className="flex flex-wrap items-baseline justify-between gap-3.5">
               <h2 className="text-[clamp(24px,2.9vw,34px)] leading-[1.15] font-extrabold tracking-[-0.048em]">
-                Choisissez votre éclairage
+                Choisissez vos housses et tapis
               </h2>
               <p className="text-[13px] whitespace-nowrap text-muted-strong">
-                {totalProduits} pack{totalProduits > 1 ? 's' : ''}
+                {totalProduits} produit{totalProduits > 1 ? 's' : ''}
               </p>
             </div>
 
             <EclairagesParZone cartes={cartes} />
 
-            {total.produits > 1 ? (
+            {false && total.produits > 1 ? (
               <TotalEclairage
                 titre={`${data.makeName} ${data.generationName}`}
                 produits={total.produits}
@@ -268,10 +268,10 @@ export default async function PacksGenerationPage({ params }: PageProps) {
             <div className="mt-[29px] grid gap-5 border-t border-line pt-[22px] pb-[26px] fiche:grid-cols-[1fr_1.3fr] fiche:gap-x-8">
               <div>
                 <h2 className="text-[20px] font-extrabold tracking-[-0.035em]">
-                  Un doute sur votre éclairage ?
+                  Un doute sur vos sièges ?
                 </h2>
                 <p className="mt-1 text-[13px] text-muted-strong">
-                  Retrouvez les repères pour choisir le bon pack.
+                  Retrouvez les repères pour choisir la bonne housse.
                 </p>
                 <Link
                   href="/contact"
@@ -285,33 +285,31 @@ export default async function PacksGenerationPage({ params }: PageProps) {
               <div>
                 <details className="border-b border-line">
                   <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold marker:content-none">
-                    Quel emplacement choisir ?
+                    Sur mesure, à la commande ou universelle ?
                     <IconChevronDown className="size-4 shrink-0" />
                   </summary>
                   <p className="pr-2.5 pb-3 text-[13px] text-muted-strong">
-                    Chaque pack correspond à une lumière précise de la voiture : les feux de
-                    croisement éclairent la route, les veilleuses signalent votre présence, le
-                    plafonnier éclaire l&apos;habitacle. Le nom de l&apos;emplacement et ce
-                    qu&apos;il éclaire sont écrits sur chaque vignette.
+                    Les housses sur mesure sont taillées pour les sièges de cette version :
+                    ajustement précis, découpes pour appuie-tête, accoudoirs et ceintures. Les
+                    gammes à la commande sont fabriquées d&apos;après la description de votre
+                    véhicule. Les universelles s&apos;adaptent à la plupart des sièges.
                   </p>
                 </details>
                 <details className="border-b border-line">
                   <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold marker:content-none">
-                    Comment vérifier la compatibilité ?
+                    Comment être sûr que la housse convient ?
                     <IconChevronDown className="size-4 shrink-0" />
                   </summary>
                   <p className="pr-2.5 pb-3 text-[13px] text-muted-strong">
-                    Cette page montre ce qui est documenté pour la génération. Indiquez votre
-                    équipement d&apos;origine pour que les compatibilités valent pour votre
-                    véhicule : un phare halogène et un xénon n&apos;acceptent pas les mêmes
-                    pièces. En cas de doute, écrivez-nous avec le modèle exact : nous
-                    vérifions avant l&apos;envoi.
+                    Vérifiez le nombre de places et comparez vos sièges au croquis de la fiche.
+                    En cas de doute, appelez-nous au 05 58 93 95 39 ou envoyez-nous une photo de
+                    vos sièges : nous vérifions avant la fabrication.
                   </p>
                 </details>
                 {dureeGarantie() ? (
                   <details className="border-b border-line">
                     <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-bold marker:content-none">
-                      Et si une ampoule tombe en panne ?
+                      Et en cas de défaut ?
                       <IconChevronDown className="size-4 shrink-0" />
                     </summary>
                     <p className="pr-2.5 pb-3 text-[13px] text-muted-strong">

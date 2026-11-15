@@ -9,6 +9,7 @@ import { AccountNav } from '@/components/account/AccountNav'
 import { Breadcrumb } from '@/components/catalogue/Breadcrumb'
 import { Badge, type BadgeTone } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Surface'
+import { ReponsesQuestionnaire } from '@/components/product/ReponsesQuestionnaire'
 
 /**
  * Détail d'une commande du client connecté.
@@ -268,6 +269,7 @@ export default async function Page({ params }: { params: Promise<{ orderId: stri
                       {line.variantName}
                       <span className="text-muted"> · Quantité {line.quantity}</span>
                     </p>
+                    <ReponsesQuestionnaire reponses={line.answers} />
                     {components.length > 0 ? (
                       <ul className="mt-2 flex flex-col gap-0.5 border-t border-line pt-2 text-xs text-muted">
                         {components.map((component, index) => (

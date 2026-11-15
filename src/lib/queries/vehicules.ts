@@ -1,7 +1,8 @@
 import 'server-only'
+import { libelleAnnees } from '../annees'
 import { nomDeLEmplacement } from '../packs-vue'
 import { prisma } from '../db'
-import { lectureCatalogueAvecRepli } from '../cache-catalogue'
+import { lectureCatalogue, lectureCatalogueAvecRepli } from '../cache-catalogue'
 import { recommendPackaging } from '../recommendation'
 import { availabilityForKit, availabilityForVariant, isPurchasable } from '../stock'
 import type { FitmentStatus } from '../fitment'
@@ -116,7 +117,7 @@ export type PackMakeDetail = {
 
 /** « 2012–2016 » ou « depuis 2020 » — même formulation partout. */
 export function yearsLabel(yearFrom: number, yearTo: number | null): string {
-  return yearTo ? `${yearFrom}–${yearTo}` : `depuis ${yearFrom}`
+  return libelleAnnees(yearFrom, yearTo)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -496,6 +497,15 @@ async function lireGenerationDesPacks(
           .sort((a, b) => poids[a.status] - poids[b.status] || a.fromPriceCents - b.fromPriceCents),
       }))
 
+    /*
+      FRANCE HOUSSES : en plus des fiches taillées pour ce véhicule, les gammes
+      fabriquées à la commande (questionnaire) et les universelles de son type
+      lui conviennent toutes. Elles suivent, groupées à part.
+    */
+    const generiques = await groupesGeneriques(generation.model.make.type)
+    groups.push(...generiques)
+    groups.sort((a, b) => ordreDuGroupe(a.code) - ordreDuGroupe(b.code))
+
     return {
       state: 'found',
       data: {
@@ -524,3 +534,85 @@ async function lireGenerationDesPacks(
     return { state: 'unavailable' }
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Gammes à la commande et universelles (France Housses)                      */
+/* -------------------------------------------------------------------------- */
+
+const ORDRE_GROUPES = [
+  'HOUSSES',
+  'HOUSSES_COMMANDE',
+  'TAPIS',
+  'TAPIS_COMMANDE',
+  'HOUSSES_UNIVERSELLES',
+  'TAPIS_UNIVERSELS',
+  'BACHE',
+]
+
+function ordreDuGroupe(code: string): number {
+  const rang = ORDRE_GROUPES.indexOf(code)
+  return rang < 0 ? ORDRE_GROUPES.length : rang
+}
+
+const LIBELLES_GENERIQUES: Record<string, string> = {
+  HOUSSES_COMMANDE: 'Housses sur mesure à la commande',
+  HOUSSES_UNIVERSELLES: 'Housses universelles',
+  TAPIS_COMMANDE: 'Tapis sur mesure à la commande',
+  TAPIS_UNIVERSELS: 'Tapis universels',
+}
+
+/** Au plus, par groupe : la page reste lisible, la catégorie montre le reste. */
+const MAX_PAR_GROUPE = 12
+
+const groupesGeneriques = lectureCatalogue(
+  'vehicule-gammes-generiques-v1',
+  async (type: string): Promise<PackPositionGroup[]> => {
+    const produits = await prisma.product.findMany({
+      where: {
+        status: 'PUBLISHED',
+        scope: { in: ['MADE_TO_ORDER', 'UNIVERSAL'] },
+        vehicleType: type as PackVehicleType,
+        categories: { some: { category: { family: { in: ['SEAT_COVER', 'FLOOR_MAT'] } } } },
+      },
+      orderBy: [{ featured: 'desc' }, { name: 'asc' }],
+      include: {
+        categories: { include: { category: { select: { family: true } } }, take: 1 },
+        variants: { where: { active: true }, orderBy: { priceCents: 'asc' }, take: 1 },
+        media: { ...ARGS_COUVERTURE, include: { media: true } },
+      },
+    })
+    const parCode = new Map<string, PackProduct[]>()
+    for (const produit of produits) {
+      const variante = produit.variants[0]
+      if (!variante) continue
+      const famille = produit.categories[0]?.category.family
+      const code =
+        famille === 'FLOOR_MAT'
+          ? produit.scope === 'MADE_TO_ORDER'
+            ? 'TAPIS_COMMANDE'
+            : 'TAPIS_UNIVERSELS'
+          : produit.scope === 'MADE_TO_ORDER'
+            ? 'HOUSSES_COMMANDE'
+            : 'HOUSSES_UNIVERSELLES'
+      const liste = parCode.get(code) ?? []
+      if (liste.length >= MAX_PAR_GROUPE) continue
+      const cover = couverture(produit.media)?.media
+      liste.push({
+        productSlug: produit.slug,
+        productName: produit.name,
+        tagline: produit.tagline,
+        image: cover ? { url: cover.url, alt: cover.alt ?? produit.name } : null,
+        status: 'CONFIRMED',
+        recommended: { id: variante.id, name: variante.name, priceCents: variante.priceCents },
+        fromPriceCents: variante.priceCents,
+        contents: [],
+      })
+      parCode.set(code, liste)
+    }
+    return [...parCode.entries()].map(([code, products]) => ({
+      code,
+      label: LIBELLES_GENERIQUES[code] ?? code,
+      products,
+    }))
+  },
+)

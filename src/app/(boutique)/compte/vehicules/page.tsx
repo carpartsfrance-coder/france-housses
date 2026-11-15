@@ -68,11 +68,7 @@ export default async function MesVehiculesPage() {
 
               <Card className="mt-4 p-5">
                 <div className="flex items-start gap-3">
-                  {selected.type === 'MOTORCYCLE' ? (
-                    <IconMotorcycle className="mt-0.5 size-6 shrink-0 text-muted-strong" />
-                  ) : (
-                    <IconCar className="mt-0.5 size-6 shrink-0 text-muted-strong" />
-                  )}
+                  <IconCar className="mt-0.5 size-6 shrink-0 text-muted-strong" />
                   <div className="min-w-0">
                     <p className="font-bold">{selected.label}</p>
                     {selected.equipmentLabel ? (
@@ -113,11 +109,7 @@ export default async function MesVehiculesPage() {
                   <Card as="li" key={vehicle.id} className="p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="flex min-w-0 items-start gap-3">
-                        {vehicle.type === 'MOTORCYCLE' ? (
-                          <IconMotorcycle className="mt-0.5 size-6 shrink-0 text-muted-strong" />
-                        ) : (
-                          <IconCar className="mt-0.5 size-6 shrink-0 text-muted-strong" />
-                        )}
+                        <IconCar className="mt-0.5 size-6 shrink-0 text-muted-strong" />
                         <div className="min-w-0">
                           <p className="font-bold">{vehicle.label}</p>
                           <p className="text-sm text-muted-strong">{vehicle.equipmentLabel}</p>

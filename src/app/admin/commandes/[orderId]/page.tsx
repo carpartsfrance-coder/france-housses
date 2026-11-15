@@ -11,6 +11,7 @@ import { Breadcrumb } from '@/components/catalogue/Breadcrumb'
 import { Badge, type BadgeTone } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Surface'
 import { CancelForm, NoteForm, RefundForm, ShipForm } from '@/components/admin/OrderActions'
+import { ReponsesQuestionnaire } from '@/components/product/ReponsesQuestionnaire'
 
 /**
  * Dossier complet d'une commande.
@@ -336,6 +337,7 @@ export default async function Page({ params }: { params: Promise<{ orderId: stri
                           {nomUtileDuConditionnement(line.variantName, line.productName) ? (
                             <span className="block text-xs text-muted-strong">{line.variantName}</span>
                           ) : null}
+                          <ReponsesQuestionnaire reponses={line.answers} />
                           {components.length > 0 ? (
                             <ul className="mt-1 flex flex-col gap-0.5 text-xs text-muted">
                               {components.map((component, index) => (

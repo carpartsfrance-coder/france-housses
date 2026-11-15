@@ -102,7 +102,11 @@ export const commercialTerms = {
   /** Pas de garantie commerciale chiffrée : garanties légales seulement. */
   warrantyMonths: null as number | null,
   /** Paiement en 3 fois sans frais, à partir de ce montant (centimes TTC). */
-  installmentsFromCents: 20000 as number | null,
+  /*
+    Null tant que le moyen de paiement en plusieurs fois n'est pas branché sur
+    le nouveau site (l'ancien passait par Sofinco / Monético).
+  */
+  installmentsFromCents: null as number | null,
   /** Expédition des produits en stock. */
   dispatchEstimate: 'Expédié sous 24 h ouvrées' as string | null,
 } as const

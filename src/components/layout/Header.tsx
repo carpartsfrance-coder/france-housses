@@ -67,9 +67,24 @@ export async function Header() {
               <span className="truncate">
                 {seuilLivraisonOfferte
                   ? `Livraison offerte dès ${formatPrice(seuilLivraisonOfferte)}`
-                  : 'Livraison et retours'}
+                  : 'Livraison 48 h en France (hors sur mesure)'}
               </span>
             </p>
+            {/* La note réelle des avis clients (Société des Avis Garantis), avec son lien. */}
+            {identity.avis ? (
+              <a
+                href={identity.avis.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-w-0 items-center gap-2 transition-colors hover:text-white"
+              >
+                <span aria-hidden className="text-white/25">|</span>
+                <span aria-hidden className="text-[#f5b301]">★</span>
+                <span className="truncate">
+                  {identity.avis.note} · {identity.avis.label}
+                </span>
+              </a>
+            ) : null}
             {/* La garantie, deuxième argument de confiance après la livraison. */}
             {dureeGarantie() ? (
               <Link
@@ -81,8 +96,12 @@ export async function Header() {
                 <span className="truncate">Garantie {dureeGarantie()}</span>
               </Link>
             ) : null}
-            {/* Satisfait ou remboursé : mis en avant (décision de l'exploitant, 9 novembre 2026). */}
-            {promesseRetour() ? (
+            <p className="hidden min-w-0 items-center gap-2 sm:flex">
+              <span aria-hidden className="text-white/25">|</span>
+              <span className="truncate font-semibold text-white">Fabrication française et européenne</span>
+            </p>
+            {/* Satisfait ou remboursé : seulement si une telle promesse est configurée. */}
+            {promesseRetour() && identity.name !== 'FRANCE HOUSSES' ? (
               <Link
                 href="/livraison-retours#retours"
                 className="hidden min-w-0 items-center gap-2 transition-colors hover:text-white sm:flex"

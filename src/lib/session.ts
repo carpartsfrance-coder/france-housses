@@ -21,7 +21,7 @@ export type SelectedVehicle = {
   label: string
   /** Équipement d'origine, affiché en fiche produit. `null` s'il n'est pas précisé. */
   equipmentLabel: string | null
-  type: 'CAR' | 'MOTORCYCLE'
+  type: 'CAR' | 'VAN' | 'MOTORHOME' | 'TRUCK'
   /**
    * De quoi repartir de cette sélection dans un formulaire.
    *
@@ -100,15 +100,19 @@ export async function getSelectedVehicle(): Promise<SelectedVehicle | null> {
     if (!(await generationVisible(config.generationId))) return null
 
     const { generation } = config
-    const years = generation.yearTo
-      ? `${generation.yearFrom}–${generation.yearTo}`
-      : `depuis ${generation.yearFrom}`
+    const { libelleAnnees } = await import('./annees')
+    const years = libelleAnnees(generation.yearFrom, generation.yearTo)
 
     return {
       configurationId: config.id,
       label: `${generation.model.make.name} ${generation.name} · ${years}`,
       equipmentLabel: equipementPrecise(config.equipment) ? config.equipment.label : null,
-      type: generation.model.make.type === 'MOTORCYCLE' ? 'MOTORCYCLE' : 'CAR',
+      type:
+        generation.model.make.type === 'VAN' ||
+        generation.model.make.type === 'MOTORHOME' ||
+        generation.model.make.type === 'TRUCK'
+          ? generation.model.make.type
+          : 'CAR',
       selection: {
         makeId: generation.model.make.id,
         modelId: generation.model.id,

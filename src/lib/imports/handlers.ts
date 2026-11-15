@@ -29,7 +29,7 @@ export type ValidationResult = { errors: string[]; warnings: string[] }
 type Row = Record<string, string>
 
 const PACKAGINGS = ['UNIT', 'PAIR', 'PACK', 'KIT'] as const
-const VEHICLE_TYPES = ['CAR', 'MOTORCYCLE', 'BOTH'] as const
+const VEHICLE_TYPES = ['CAR', 'VAN', 'MOTORHOME', 'TRUCK', 'BOTH'] as const
 const FITMENT_STATUSES = ['CONFIRMED', 'UNKNOWN', 'INCOMPATIBLE'] as const
 const APPROVALS = ['APPROVED', 'NOT_APPROVED', 'UNKNOWN'] as const
 

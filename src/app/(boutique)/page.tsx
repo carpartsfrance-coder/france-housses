@@ -23,7 +23,7 @@ import { FaqHelpSection } from '@/components/home/FaqHelpSection'
 import { OrganizationStructuredData } from '@/components/seo/StructuredData'
 
 export const metadata: Metadata = {
-  title: 'Éclairage LED auto & moto',
+  title: 'Housses de siège et tapis sur mesure',
   alternates: { canonical: '/' },
 }
 
@@ -62,12 +62,12 @@ export default async function HomePage() {
   const reperes = [
     ...(premier ? [premier] : []),
     ...(dureeGarantie()
-      ? [{ icon: 'shield', title: `Garantie ${dureeGarantie()}`, text: 'Sur toutes nos ampoules et LED' }]
+      ? [{ icon: 'shield', title: `Garantie ${dureeGarantie()}`, text: 'Sur tous nos produits' }]
       : []),
     ...(seuil
       ? [{ icon: 'truck', title: `Livraison offerte dès ${formatPrice(seuil)}`, text: 'En France métropolitaine' }]
       : []),
-    ...autres.filter((item) => item.icon !== 'headset'),
+    ...autres,
   ].slice(0, 4)
 
   // Questions publiées en back-office, sinon les quatre premières par défaut.
@@ -102,7 +102,7 @@ export default async function HomePage() {
           référence. Le raccourci mène à la même recherche, qui trouve un
           véhicule tapé en toutes lettres.
         */
-        finder={{ ...blocks.vehicleBand, shortcutLabel: 'Ou tapez votre véhicule : « clio 4 veilleuses »' }}
+        finder={{ ...blocks.vehicleBand, shortcutLabel: 'Ou tapez votre véhicule : « clio 4 »' }}
         vehicle={vehicle}
       />
       <ReassuranceBand items={reperes} />
@@ -126,15 +126,8 @@ export default async function HomePage() {
       <MethodSection content={blocks.method} />
       {/* Pas de mise en avant moto tant qu'aucun pack moto n'est en ligne :
           son bouton menait à « Aucune marque moto n'est encore référencée ». */}
-      {navigation.some((section) => section.key === 'packs-moto') ? (
-        <MotoSection
-          content={{
-            ...blocks.moto,
-            // La rubrique « Moto & scooter » est vide : les packs moto se
-            // trouvent par marque et modèle, comme ceux des voitures.
-            ctaHref: blocks.moto.ctaHref === '/c/moto' ? '/vehicules/moto' : blocks.moto.ctaHref,
-          }}
-        />
+      {navigation.some((section) => section.key === 'vehicules-utilitaire') ? (
+        <MotoSection content={blocks.moto} />
       ) : null}
       <FaqHelpSection faq={faq} help={blocks.help} />
     </>

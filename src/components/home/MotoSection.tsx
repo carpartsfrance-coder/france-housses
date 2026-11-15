@@ -37,7 +37,7 @@ export function MotoSection({ content }: MotoSectionProps) {
       {/* .moto-panel : 340 px (370 en mobile), rayon 11 px, fond #19222a. */}
       <div className="relative h-[370px] overflow-hidden rounded-lg bg-[#19222a] text-white lg:h-[340px] lg:rounded-[11px]">
         <Image
-          src={`/demo/${content.image}`}
+          src={content.image.startsWith('/') ? content.image : `/demo/${content.image}`}
           alt=""
           fill
           sizes="(min-width: 1024px) 1216px, 100vw"

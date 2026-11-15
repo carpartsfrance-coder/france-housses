@@ -121,7 +121,7 @@ export type SavedVehicleView = {
   isPrimary: boolean
   label: string
   equipmentLabel: string
-  type: 'CAR' | 'MOTORCYCLE'
+  type: 'CAR' | 'VAN' | 'MOTORHOME' | 'TRUCK'
 }
 
 export async function getMySavedVehicles(userId: string): Promise<SavedVehicleView[]> {
@@ -153,7 +153,10 @@ export async function getMySavedVehicles(userId: string): Promise<SavedVehicleVi
         isPrimary: row.isPrimary,
         label: `${generation.model.make.name} ${generation.name} · ${years}`,
         equipmentLabel: row.configuration.equipment.label,
-        type: generation.model.make.type === 'MOTORCYCLE' ? 'MOTORCYCLE' : 'CAR',
+        type:
+          generation.model.make.type === 'VAN' || generation.model.make.type === 'MOTORHOME' || generation.model.make.type === 'TRUCK'
+            ? generation.model.make.type
+            : 'CAR',
       }
     })
   } catch (error) {

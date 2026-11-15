@@ -47,17 +47,16 @@ import type { Prisma } from '@prisma/client'
  * l'est pas. L'exclure reviendrait à masquer des véhicules qui ont bien des
  * produits.
  */
-const COMPATIBILITE_EN_LIGNE: Prisma.FitmentWhereInput = {
-  variant: { active: true, product: { status: 'PUBLISHED' } },
-}
-
-/** Une génération qui mène à au moins un produit en ligne. */
+/*
+  France Housses : toute génération active mène à des produits — les housses
+  sur mesure à la commande et les universelles de son type de véhicule
+  conviennent à tous ses modèles, même sans fiche « grande série ». La
+  visibilité ne dépend donc plus des compatibilités enregistrées.
+*/
 export const GENERATION_VISIBLE: Prisma.VehicleGenerationWhereInput = {
   active: true,
-  configurations: { some: { active: true, fitments: { some: COMPATIBILITE_EN_LIGNE } } },
 }
 
-/** Un modèle qui a au moins une génération visible. */
 export const MODELE_VISIBLE: Prisma.VehicleModelWhereInput = {
   active: true,
   generations: { some: GENERATION_VISIBLE },

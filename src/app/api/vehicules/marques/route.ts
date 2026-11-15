@@ -16,7 +16,9 @@ export async function GET(request: Request) {
   // configuration de segment.
   await connection()
 
-  const type = new URL(request.url).searchParams.get('type') === 'MOTORCYCLE' ? 'MOTORCYCLE' : 'CAR'
+  const demande = new URL(request.url).searchParams.get('type')
+  const type: 'CAR' | 'VAN' | 'MOTORHOME' | 'TRUCK' =
+    demande === 'VAN' || demande === 'MOTORHOME' || demande === 'TRUCK' ? demande : 'CAR'
   try {
     const items = await marquesEnCache(type)
     return NextResponse.json({ items })
@@ -32,7 +34,7 @@ export async function GET(request: Request) {
   jusqu'aux compatibilités de chaque génération, et chaque ouverture du
   sélecteur le rejouait sur la base.
 */
-const marquesEnCache = lectureCatalogue('selecteur-marques-v2', async (type: 'CAR' | 'MOTORCYCLE') => {
+const marquesEnCache = lectureCatalogue('selecteur-marques-v2', async (type: 'CAR' | 'VAN' | 'MOTORHOME' | 'TRUCK') => {
   const marques = await prisma.vehicleMake.findMany({
     where: { type, ...MARQUE_VISIBLE },
     orderBy: [{ position: 'asc' }, { name: 'asc' }],

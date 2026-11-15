@@ -49,11 +49,16 @@ export type Emplacement = (typeof EMPLACEMENTS)[number]
 
 type ProduitMinimal = { slug: string; name: string; vehicleType?: string | null }
 
+/** Images types d'éclairage (LEDVROOM) : éteintes pour France Housses. */
+const IMAGES_TYPES_ACTIVES = false as boolean
+
 const DOSSIER = '/images-types'
 export const LEGENDE_IMAGE_TYPE = 'Visuel d’illustration — véhicule non représentatif.'
 
 /** L'emplacement d'une fiche, lu dans son adresse : « pack-led-<emplacement>-… ». */
 export function emplacementDeLaFiche(slug: string): Emplacement | null {
+  // FRANCE HOUSSES : pas d'images types d'éclairage. Les photos viennent des fiches.
+  if (!IMAGES_TYPES_ACTIVES) return null
   const trouve = EMPLACEMENTS.find((emplacement) => slug.startsWith(`pack-led-${emplacement}-`))
   return trouve ?? null
 }
@@ -111,6 +116,8 @@ export type ImageType = {
 
 /** Les images types d'une fiche, dans l'ordre de la galerie. Vide si aucune. */
 export function imagesTypes(produit: ProduitMinimal): ImageType[] {
+  // FRANCE HOUSSES : aucune image type, les photos viennent des fiches.
+  if (!IMAGES_TYPES_ACTIVES) return []
   // Feux additionnels, centrale, clignotants complets… : leur photo seule.
   const type = typeDeProduit(produit.name)
   if (type) {

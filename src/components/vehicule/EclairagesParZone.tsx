@@ -80,7 +80,7 @@ export function EclairagesParZone({ cartes }: { cartes: CarteEclairage[] }) {
         <div
           className="flex flex-wrap gap-[7px] max-[470px]:grid max-[470px]:w-full max-[470px]:grid-cols-4 max-[470px]:gap-[5px]"
           role="group"
-          aria-label="Filtrer par emplacement"
+          aria-label="Filtrer par famille de produits"
         >
           {zones.map((entree) => {
             const actif = zone === entree.cle
@@ -203,7 +203,7 @@ export function EclairagesParZone({ cartes }: { cartes: CarteEclairage[] }) {
 
                   {carte.quantite ? (
                     <p className="mt-1 text-[11px] text-muted-strong">
-                      {carte.quantite} nécessaires pour cet emplacement
+                      {carte.quantite} nécessaires
                     </p>
                   ) : null}
 
@@ -245,7 +245,7 @@ export function EclairagesParZone({ cartes }: { cartes: CarteEclairage[] }) {
                       href={`/p/${carte.slug}`}
                       className="inline-flex min-h-[38px] items-center justify-center gap-[5px] rounded-lg border border-line bg-white px-[9px] text-[11px] font-bold whitespace-nowrap text-slate-ink transition-colors after:absolute after:inset-0 after:content-[''] hover:border-brand hover:bg-surface-paper hover:text-brand"
                     >
-                      {incompatible ? 'Voir pourquoi' : 'Voir le pack'}
+                      {incompatible ? 'Voir pourquoi' : 'Voir le produit'}
                       <IconArrowRight className="size-3.5 shrink-0" />
                     </Link>
                   </div>

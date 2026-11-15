@@ -178,7 +178,7 @@ async function tauxExiste(vatRateId: string): Promise<boolean> {
 /* Créer une fiche                                                            */
 /* -------------------------------------------------------------------------- */
 
-const VEHICLE_TYPES = ['CAR', 'MOTORCYCLE', 'BOTH'] as const
+const VEHICLE_TYPES = ['CAR', 'VAN', 'MOTORHOME', 'TRUCK', 'BOTH'] as const
 
 /**
  * Crée un produit et sa première variante.

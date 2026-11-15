@@ -22,12 +22,13 @@ export function VehiculeIntrouvable() {
     <div className="container-page py-20">
       <p className="eyebrow text-brand">Erreur 404</p>
       <h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">
-        Aucun éclairage proposé pour ce véhicule.
+        Aucun produit proposé pour ce véhicule.
       </h1>
       <p className="mt-3 max-w-xl text-lg text-muted-strong">
         Cette page ne mène à aucun produit : soit le véhicule n&apos;est pas au catalogue, soit
-        aucun de ses éclairages n&apos;est en ligne pour le moment. Le lien est peut-être aussi
-        plus ancien que le catalogue.
+        aucune de ses housses n&apos;est en ligne pour le moment. Le lien est peut-être aussi
+        plus ancien que le catalogue. Appelez-nous : nous fabriquons aussi sur mesure à la
+        commande.
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">

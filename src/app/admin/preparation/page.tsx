@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Card, EmptyState } from '@/components/ui/Surface'
 import { requireStaff } from '@/lib/admin/guard'
 import { listToPrepare } from '@/lib/queries/admin'
+import { ReponsesQuestionnaire } from '@/components/product/ReponsesQuestionnaire'
 
 export const metadata: Metadata = {
   title: 'Préparation',
@@ -229,6 +230,7 @@ export default async function PreparationPage() {
                                   : ''}
                               </span>
                             </div>
+                            <ReponsesQuestionnaire reponses={line.answers} />
 
                             {composants.length > 0 ? (
                               <ul className="mt-0.5 flex flex-col gap-0.5 pl-6">

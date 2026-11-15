@@ -25,7 +25,8 @@ export async function PromessesAchat({ className }: { className?: string }) {
     seuil
       ? { icone: IconTruck, texte: `Livraison offerte dès ${formatPrice(seuil)}`, href: '/livraison-retours' }
       : null,
-    retours ? { icone: IconReturn, texte: retours, href: '/livraison-retours#retours' } : null,
+    retours ? { icone: IconReturn, texte: `${retours} (produits standard)`, href: '/livraison-retours#retours' } : null,
+    { icone: IconTruck, texte: 'Fabrication française et européenne', href: '/a-propos' },
     { icone: IconLock, texte: 'Paiement sécurisé', href: '/paiement' },
   ].filter((promesse) => promesse !== null)
 

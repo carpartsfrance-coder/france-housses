@@ -264,7 +264,7 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
     Une ampoule H7, un ballast ou une barre LED du rayon au détail n'est pas
     un pack : « En bref ».
   */
-  const enBref = typeSpecial || !vehiculeDeLaFiche ? 'En bref' : 'Le pack en bref'
+  const enBref = 'En bref'
   const visuelKit = product.gallery.find((item) => item.role === 'KIT_CONTENT') ?? product.gallery[0]
 
   /*
@@ -325,7 +325,7 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
   const sections = [
     ...(aEnBref ? [{ href: '#en-bref', label: enBref }] : []),
     ...(complementaires
-      ? [{ href: '#titre-options-vehicule', label: product.vehicleType === 'MOTORCYCLE' ? 'Toute la moto' : 'Toute la voiture' }]
+      ? [{ href: '#titre-options-vehicule', label: 'Pour ce véhicule' }]
       : []),
     ...(aSectionContenu
       ? [{ href: '#dans-votre-kit', label: kitVariant ? 'Dans la boîte' : 'Caractéristiques' }]
@@ -343,11 +343,17 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
     retour.
   */
   const promesses: Promesse[] = [
-    {
-      Icon: IconCar,
-      titre: 'Pensé pour votre véhicule',
-      texte: 'Compatibilité indiquée par emplacement',
-    },
+    product.scope === 'UNIVERSAL'
+      ? {
+          Icon: IconCar,
+          titre: 'S’adapte à la plupart des sièges',
+          texte: 'Attaches et élastiques réglables',
+        }
+      : {
+          Icon: IconCar,
+          titre: 'Taillé pour votre véhicule',
+          texte: 'Vérifiez le croquis des sièges',
+        },
     // La garantie prend la place de « Sans modifier le câblage » : c'est
     // l'argument qui rassure le plus avant d'acheter, et il vaut pour tout.
     ...(dureeGarantie()
@@ -360,17 +366,19 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
         ]
       : [
           {
-            Icon: IconWrench,
-            titre: 'Sans modifier le câblage',
-            texte: 'Adaptateurs nécessaires signalés',
+            Icon: IconShield,
+            titre: 'Compatible airbags latéraux',
+            texte: 'Couture qui s’ouvre au déclenchement',
           },
         ]),
-    ...(kitVariant
+    ...(product.madeToMeasure
       ? [
           {
             Icon: IconPack,
-            titre: 'Tout est dans la boîte',
-            texte: 'Ampoules et accessoires nécessaires',
+            titre: product.leadTimeDays
+              ? `Fabriqué en ${product.leadTimeDays} jours ouvrés`
+              : 'Fabriqué à la commande',
+            texte: 'Pour votre véhicule, à la commande',
           },
         ]
       : commercialTerms.returnWindowDays
@@ -386,8 +394,8 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
         : []),
     {
       Icon: IconHeadset,
-      titre: 'Un humain vous aide',
-      texte: 'Du choix jusqu’au montage',
+      titre: 'Un conseiller vous aide',
+      texte: 'Du lundi au vendredi, 9h–17h',
     },
   ]
 
@@ -458,7 +466,7 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
           <VehicleBar
             vehicle={vehicle}
             concuPour={concuPour}
-            intitule={typeSpecial ? 'Prévu pour' : 'Pack composé pour'}
+            intitule="Prévu pour"
             className="mb-6 max-fiche:hidden"
           />
           ) : null}
@@ -538,7 +546,11 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
                   returnWindowDays={commercialTerms.returnWindowDays}
                   garantie={dureeGarantie()}
                   concuPour={concuPour}
-                  moto={product.vehicleType === 'MOTORCYCLE'}
+                  moto={false}
+                  questionnaire={product.questionnaire}
+                  madeToMeasure={product.madeToMeasure}
+                  leadTimeDays={product.leadTimeDays}
+                  scope={product.scope}
                   vehiculeDesComplements={
                     complementaires && complementaires.packs.length > 0
                       ? complementaires.vehicule
@@ -614,7 +626,7 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
                       href={vehiculeDeLaFiche.chemin}
                       className="mt-6 inline-flex min-h-11 items-center gap-2 text-[15px] font-bold text-white underline underline-offset-4 hover:text-brand-on-dark"
                     >
-                      {`Tous les éclairages de votre ${nomDuVehicule(vehiculeDeLaFiche)} (${anneesCourtes(
+                      {`Tous les produits pour votre ${nomDuVehicule(vehiculeDeLaFiche)} (${anneesCourtes(
                         vehiculeDeLaFiche.generation.anneeDebut,
                         vehiculeDeLaFiche.generation.anneeFin,
                       )})`}
@@ -643,19 +655,19 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
                 seulement pour un produit lié à un emplacement d'éclairage, et
                 jamais pour un pack d'ampoules halogènes : il parle de LED.
               */}
-              {position && !effetXenon && !typeSpecial ? (
+              {product.scope !== 'UNIVERSAL' && /housse/i.test(product.name) ? (
                 <div className="flex flex-col gap-8 border-t border-[#2a2d32] pt-12 fiche:grid fiche:grid-cols-[0.8fr_1.2fr] fiche:items-start fiche:gap-14">
                   <div>
                     <p className="mb-3 text-[12px] font-bold tracking-[1.4px] text-brand-on-dark uppercase">
-                      Pourquoi un pack {identity.name}
+                      Pourquoi le sur mesure {identity.name}
                     </p>
                     <h3 className="text-[24px] leading-[1.15] font-bold tracking-[-0.6px] fiche:text-[30px]">
-                      Des LED qui vont vraiment sur votre{' '}
-                      {product.vehicleType === 'MOTORCYCLE' ? 'moto' : 'voiture'}.
+                      Des housses qui épousent vraiment vos sièges.
                     </h3>
                     <p className="mt-4 text-[16px] leading-[1.7] text-[#c9ccd1]">
-                      Des ampoules LED, on en trouve partout. Savoir lesquelles rentrent dans
-                      votre phare, sans erreur au tableau de bord, c’est notre métier.
+                      Des housses universelles, on en trouve partout. Une housse qui reprend la
+                      forme exacte de vos sièges, avec les découpes au bon endroit, c’est notre
+                      métier depuis 1986.
                     </p>
                     {/* Un chiffre lu dans la base (modèles avec au moins un produit en ligne). */}
                     {modelesReferences && plusDe(modelesReferences) ? (
@@ -668,7 +680,7 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
                         <span className="text-[15px] leading-snug text-[#c9ccd1]">
                           modèles de véhicules référencés,
                           <br />
-                          emplacement par emplacement.
+                          siège par siège.
                         </span>
                       </p>
                     ) : null}
@@ -691,10 +703,10 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
                           scope="col"
                           className="w-[30%] px-2 py-3 text-center font-semibold text-[#a9adb4]"
                         >
-                          LED « universelles »
+                          Housse universelle
                         </th>
                         <th scope="col" className="w-[30%] rounded-t-xl bg-white/[0.06] px-2 py-3 text-center font-bold">
-                          Pack {identity.name}
+                          Sur mesure {identity.name}
                         </th>
                       </tr>
                     </thead>
@@ -708,10 +720,10 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
                       */}
                       {(
                         [
-                        { critere: 'Compatibilité vérifiée pour votre véhicule', ailleurs: 'À vérifier vous-même', non: true },
-                        { critere: 'Équipement d’origine pris en compte (halogène, xénon, LED)', ailleurs: 'À vérifier vous-même', non: true },
-                        { critere: 'Adaptateurs nécessaires signalés', ailleurs: 'À trouver ailleurs', non: true },
-                        { critere: 'Un conseiller avant et après l’achat', ailleurs: 'Rarement', non: true },
+                        { critere: 'Coupe à la forme de vos sièges', ailleurs: 'Taille unique', non: true },
+                        { critere: 'Découpes appuie-tête, accoudoirs, ceintures', ailleurs: 'Approximatives', non: true },
+                        { critere: 'Croquis de vos sièges fourni', ailleurs: 'Non', non: true },
+                        { critere: 'Un conseiller avant la commande', ailleurs: 'Rarement', non: true },
                         dureeGarantie()
                           ? { critere: 'Garantie', ailleurs: 'Selon le vendeur', nous: dureeGarantie() as string }
                           : null,

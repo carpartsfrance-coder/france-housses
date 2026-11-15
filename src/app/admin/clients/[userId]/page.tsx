@@ -264,11 +264,7 @@ export default async function AdminClientPage({ params }: { params: Params }) {
                 const make = generation.model.make
                 return (
                   <Card as="li" key={saved.id} className="flex items-start gap-2 p-3 text-sm">
-                    {make.type === 'MOTORCYCLE' ? (
-                      <IconMotorcycle className="mt-0.5 size-4 shrink-0 text-muted-strong" />
-                    ) : (
-                      <IconCar className="mt-0.5 size-4 shrink-0 text-muted-strong" />
-                    )}
+                    <IconCar className="mt-0.5 size-4 shrink-0 text-muted-strong" />
                     <div className="min-w-0">
                       <p className="font-medium">
                         {make.name} {generation.model.name} — {generation.name}
