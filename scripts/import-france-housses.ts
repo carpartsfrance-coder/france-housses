@@ -157,6 +157,17 @@ async function media(
     return null
   }
   const stocke = await putFile({ bytes: octets, mimeType: mime, extension: ALLOWED_MIME.get(mime)!, prefix: options.prefix, empreinte })
+  // Dimensions : la galerie et le choix du visuel de catégorie s'en servent.
+  if (!stocke.width) {
+    try {
+      const { default: sharp } = await import('sharp')
+      const meta = await sharp(octets).metadata()
+      stocke.width = meta.width ?? null
+      stocke.height = meta.height ?? null
+    } catch {
+      /* image illisible : dimensions inconnues */
+    }
+  }
   const cree = await prisma.media.create({
     data: {
       storageKey: stocke.key,
@@ -447,7 +458,7 @@ async function visuelsDesCategories() {
         product: { status: 'PUBLISHED', categories: { some: { categoryId: { in: ids } } } },
         media: { nature: { not: 'DIAGRAM' }, width: { gte: 500 } },
       },
-      orderBy: [{ media: { width: 'desc' } }],
+      orderBy: [{ product: { featured: 'desc' } }, { media: { width: 'desc' } }, { position: 'asc' }],
       select: { mediaId: true },
     })
     if (!lien) continue
