@@ -468,6 +468,17 @@ async function visuelsDesCategories() {
   console.log(`  ${n} visuels de catégorie`)
 }
 
+/**
+ * Vitrine de l'accueil (« Mettre en avant sur l'accueil ») : quatre gammes
+ * phares, seulement si aucune n'a encore été choisie dans le back-office.
+ */
+const VITRINE = [837, 904, 898, 1149]
+async function vitrineParDefaut() {
+  if ((await prisma.product.count({ where: { featured: true } })) > 0) return
+  const r = await prisma.product.updateMany({ where: { legacyId: { in: VITRINE } }, data: { featured: true } })
+  console.log(`  vitrine de l'accueil : ${r.count} produits`)
+}
+
 async function main() {
   const catalogue = JSON.parse(await readFile(SOURCE, 'utf8')) as Catalogue
   console.log(`→ Import France Housses (${catalogue.products.length} produits)${SANS_PHOTOS ? ' — sans photos' : ''}`)
@@ -478,6 +489,7 @@ async function main() {
   await importerProduits(catalogue.products, categories, questionnaires, configurations)
   await importerRedirections(catalogue, redirections)
   if (!SANS_PHOTOS) await visuelsDesCategories()
+  await vitrineParDefaut()
   console.log('Terminé. Pensez à vider le cache du catalogue (redémarrage du site).')
 }
 
