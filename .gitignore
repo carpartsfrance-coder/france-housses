@@ -16,3 +16,6 @@ next-env.d.ts
 # Scripts jetables de mise au point : jamais versionnés.
 scripts/_*
 public/uploads/
+
+# Cache des photos de l'import France Housses
+/.cache/
