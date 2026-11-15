@@ -838,7 +838,7 @@ export function VehicleTree({
             label="Nom"
             fieldSize="sm"
             wrapperClassName="min-w-0 flex-1 basis-[180px]"
-            placeholder="Yamaha"
+            placeholder="Fiat"
             required
           />
           <ChampType id="new-make-type" defaultValue="CAR" includeBoth={false} />
@@ -857,9 +857,10 @@ export function VehicleTree({
           </Button>
         </form>
         <p className="mt-2 text-[10px] leading-[1.7] text-muted">
-          Le type décide du parcours qui la listera : <code>/vehicules/auto</code> ou{' '}
-          <code>/vehicules/moto</code>. L&apos;adresse entre dans les URL publiques et ne change plus
-          d&apos;elle-même ensuite : <code>/vehicules/moto/yamaha</code>. Le logo se choisit parmi
+          Le type décide du parcours qui la listera : <code>/vehicules/auto</code>,{' '}
+          <code>/vehicules/utilitaire</code>, <code>/vehicules/camping-car</code> ou{' '}
+          <code>/vehicules/poids-lourd</code>. L&apos;adresse entre dans les URL publiques et ne change
+          plus d&apos;elle-même ensuite : <code>/vehicules/camping-car/fiat</code>. Le logo se choisit parmi
           les visuels déposés dans{' '}
           <Link href="/admin/medias" className="font-semibold underline underline-offset-4">
             Médias
