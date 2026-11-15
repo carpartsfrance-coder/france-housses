@@ -429,6 +429,34 @@ async function importerRedirections(cat: Catalogue, vehicules: Array<{ fromPath:
   console.log(`  ${lignes.length} redirections`)
 }
 
+/**
+ * Visuel de chaque catégorie qui n'en a pas : la plus grande photo PRODUIT
+ * (pas un croquis) d'un produit publié de la catégorie ou de ses
+ * sous-catégories. Modifiable ensuite dans le back-office.
+ */
+async function visuelsDesCategories() {
+  const categories = await prisma.category.findMany({
+    select: { id: true, name: true, heroMediaId: true, children: { select: { id: true } } },
+  })
+  let n = 0
+  for (const c of categories) {
+    if (c.heroMediaId) continue
+    const ids = [c.id, ...c.children.map((e) => e.id)]
+    const lien = await prisma.productMedia.findFirst({
+      where: {
+        product: { status: 'PUBLISHED', categories: { some: { categoryId: { in: ids } } } },
+        media: { nature: { not: 'DIAGRAM' }, width: { gte: 500 } },
+      },
+      orderBy: [{ media: { width: 'desc' } }],
+      select: { mediaId: true },
+    })
+    if (!lien) continue
+    await prisma.category.update({ where: { id: c.id }, data: { heroMediaId: lien.mediaId } })
+    n++
+  }
+  console.log(`  ${n} visuels de catégorie`)
+}
+
 async function main() {
   const catalogue = JSON.parse(await readFile(SOURCE, 'utf8')) as Catalogue
   console.log(`→ Import France Housses (${catalogue.products.length} produits)${SANS_PHOTOS ? ' — sans photos' : ''}`)
@@ -438,6 +466,7 @@ async function main() {
   const { configurations, redirections } = await importerVehicules(catalogue.vehicles)
   await importerProduits(catalogue.products, categories, questionnaires, configurations)
   await importerRedirections(catalogue, redirections)
+  if (!SANS_PHOTOS) await visuelsDesCategories()
   console.log('Terminé. Pensez à vider le cache du catalogue (redémarrage du site).')
 }
 

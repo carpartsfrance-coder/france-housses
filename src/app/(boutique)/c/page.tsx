@@ -38,7 +38,7 @@ export default async function CategoriesPage() {
             Toutes les catégories
           </h1>
           <p className="max-w-2xl text-base text-muted-strong">
-            Chaque catégorie regroupe les ampoules et les kits d&apos;un même usage. La
+            Chaque catégorie regroupe les housses, tapis et protections d&apos;un même usage. La
             compatibilité dépend du véhicule : indiquez le vôtre pour savoir ce qui lui correspond.
           </p>
         </div>
