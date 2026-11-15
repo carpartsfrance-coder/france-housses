@@ -263,6 +263,25 @@ const listeEnCache = lectureCatalogue('catalogue-liste-v2', (filters: CatalogueF
  * autres culots de la liste, et la sélection multiple devient impossible —
  * alors même que l'interface la promet.
  */
+/**
+ * « clio 4 » : le numéro reste collé au mot qui le précède. Cherché seul, le
+ * « 4 » se retrouvait dans « 2004 », et la Clio 2 sortait pour la Clio 4.
+ */
+function accolerLesNumeros(mots: string[][]): string[][] {
+  const resultat: string[][] = []
+  for (const variantes of mots) {
+    const numero = variantes.every((v) => /^\s?(\d{1,2}|[IVX]+)$/iu.test(v))
+    const precedent = resultat[resultat.length - 1]
+    const motProduit = precedent?.some((v) => /^(housses?|tapis|b[aâ]ches?|siege|siège|sieges|sièges)$/i.test(v.trim()))
+    if (numero && precedent && !motProduit && !precedent.some((v) => /\s[\p{N}IVX]+$/iu.test(v))) {
+      resultat[resultat.length - 1] = precedent.flatMap((p) => variantes.map((n) => `${p} ${n.trim()}`))
+    } else {
+      resultat.push(variantes)
+    }
+  }
+  return resultat
+}
+
 function buildWhere(
   filters: CatalogueFilters,
   skip?: 'bases' | 'temperatures' | 'packagings',
@@ -302,7 +321,7 @@ function buildWhere(
     ]
     // Chaque mot utile doit se trouver dans la fiche, dans n'importe quel
     // ordre (lib/recherche-mots.ts) ; sans mot utile, la phrase entière.
-    const mots = motsDeRecherche(q)
+    const mots = accolerLesNumeros(motsDeRecherche(q))
     if (mots.length > 0) {
       // Un nombre ou un mot très court (« 4 », « 308 », « H7 ») ne se cherche
       // que dans le nom et le culot : ailleurs, il se retrouvait dans toutes
