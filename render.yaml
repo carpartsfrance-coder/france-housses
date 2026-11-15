@@ -1,10 +1,10 @@
 # ============================================================================
-# LUMERA — plan d'infrastructure Render
+# FRANCE HOUSSES — plan d'infrastructure Render (repris de LEDVROOM)
 #
 # Trois ressources, pas davantage :
-#   1. lumera-db   : PostgreSQL géré (catalogue, véhicules, commandes, SAV)
-#   2. lumera-web  : l'application (site public + back-office + API + webhooks)
-#   3. lumera-jobs : un cron qui dépile la table JobQueue (imports, e-mails,
+#   1. fh-db   : PostgreSQL géré (catalogue, véhicules, commandes, SAV)
+#   2. fh-web  : l'application (site public + back-office + API + webhooks)
+#   3. fh-jobs : un cron qui dépile la table JobQueue (imports, e-mails,
 #                    relances). Pas de Redis, pas de service worker séparé :
 #                    la file vit dans PostgreSQL, ce qui évite un quatrième
 #                    service à payer et à surveiller.
@@ -20,9 +20,9 @@
 # ============================================================================
 
 databases:
-  - name: lumera-db
-    databaseName: lumera
-    user: lumera
+  - name: fh-db
+    databaseName: france_housses
+    user: france_housses
     # 0.5 CPU, 1 Go (passée le 8 novembre 2026) : avec 30 000 fiches, l'offre
     # 256 Mo ne gardait pas les données en mémoire et lisait sans cesse un
     # disque lent (recherche de 3 à 50 s). Garder ce plan aligné sur celui
@@ -36,7 +36,7 @@ services:
   # Application web
   # --------------------------------------------------------------------------
   - type: web
-    name: lumera-web
+    name: fh-web
     runtime: node
     # 1 CPU, 2 Go (passée le 14 novembre 2026). Sous l'offre starter (512 Mo),
     # la mémoire montait sans jamais redescendre pendant le passage de
@@ -74,7 +74,7 @@ services:
         value: '22'
       - key: DATABASE_URL
         fromDatabase:
-          name: lumera-db
+          name: fh-db
           property: connectionString
 
       # --- Identité publique -------------------------------------------------
@@ -86,8 +86,11 @@ services:
       # synchronisation du Blueprint écrase celle du tableau de bord — le
       # 8 novembre 2026, un « on » resté dans ce fichier a remis le site en
       # préproduction (noindex, robots.txt fermé, flux en 404).
+      # FRANCE HOUSSES : « on » tant que l'ancien site france-housses.fr est en
+      # ligne (pas d'indexation du site de préproduction, pas de contenu en
+      # double pour Google). Passer à « off » le jour de la bascule du domaine.
       - key: NEXT_PUBLIC_DEMO_MODE
-        value: 'off'
+        value: 'on'
 
       # --- Sessions ----------------------------------------------------------
       # Aucun secret de signature : le cookie de session porte un jeton
@@ -182,7 +185,7 @@ services:
   # Dépilage de la file de travaux
   # --------------------------------------------------------------------------
   - type: cron
-    name: lumera-jobs
+    name: fh-jobs
     runtime: node
     plan: starter
     region: frankfurt
@@ -216,7 +219,7 @@ services:
         value: '22'
       - key: DATABASE_URL
         fromDatabase:
-          name: lumera-db
+          name: fh-db
           property: connectionString
       # Indispensable : le cron est ce qui envoie réellement les e-mails, et
       # chaque lien d'un e-mail est construit depuis cette valeur. Absente, la
@@ -225,57 +228,57 @@ services:
       - key: NEXT_PUBLIC_SITE_URL
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: NEXT_PUBLIC_SITE_URL
       - key: EMAIL_DRIVER
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: EMAIL_DRIVER
       - key: EMAIL_FROM
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: EMAIL_FROM
       - key: EMAIL_API_KEY
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: EMAIL_API_KEY
       - key: MEDIA_DRIVER
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: MEDIA_DRIVER
       - key: MEDIA_BUCKET
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: MEDIA_BUCKET
       - key: MEDIA_ENDPOINT
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: MEDIA_ENDPOINT
       - key: MEDIA_REGION
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: MEDIA_REGION
       - key: MEDIA_ACCESS_KEY_ID
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: MEDIA_ACCESS_KEY_ID
       - key: MEDIA_SECRET_ACCESS_KEY
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: MEDIA_SECRET_ACCESS_KEY
       - key: MEDIA_PUBLIC_HOST
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: MEDIA_PUBLIC_HOST
       # Indispensable : à chaque passage, le cron interroge le prestataire au
       # sujet des commandes restées en attente, et applique l'issue. C'est le
@@ -286,20 +289,20 @@ services:
       - key: MOLLIE_API_KEY
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: MOLLIE_API_KEY
       - key: STRIPE_SECRET_KEY
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: STRIPE_SECRET_KEY
       - key: PAYMENT_PROVIDER
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: PAYMENT_PROVIDER
       - key: JOB_RUNNER_TOKEN
         fromService:
           type: web
-          name: lumera-web
+          name: fh-web
           envVarKey: JOB_RUNNER_TOKEN

@@ -27,8 +27,8 @@ function lireMotif(): Promise<Buffer> {
 }
 
 /** En ASCII : l'EXIF ne garde pas les caractères accentués ni « © ». */
-export const COPYRIGHT = 'Copyright LEDVROOM - ledvroom.com'
-export const EXIF_LEDVROOM = { IFD0: { Copyright: COPYRIGHT, Artist: 'LEDVROOM' } }
+export const COPYRIGHT = 'Copyright FRANCE HOUSSES - france-housses.fr'
+export const EXIF_LEDVROOM = { IFD0: { Copyright: COPYRIGHT, Artist: 'FRANCE HOUSSES' } }
 
 export async function filigraner(bytes: Buffer): Promise<Buffer> {
   const { default: sharp } = await import('sharp')

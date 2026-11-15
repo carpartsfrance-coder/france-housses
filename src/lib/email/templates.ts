@@ -146,7 +146,7 @@ export const TEMPLATES: Record<TemplateKey, TemplateDefinition> = {
         { type: 'button', label: 'Suivre ma commande', href: orderUrl(vars) },
         {
           type: 'paragraph',
-          text: 'Nous vous écrirons à nouveau dès que votre colis sera expédié.',
+          text: 'Nous vous écrirons à nouveau dès que votre colis sera expédié. Les housses et tapis fabriqués sur mesure partent à la fin de leur délai de fabrication, indiqué sur leur fiche.',
         },
       ]
       // Garantie et droit de retour : ce qui est configuré, rien de plus.
@@ -157,7 +157,7 @@ export const TEMPLATES: Record<TemplateKey, TemplateDefinition> = {
         commercialTerms.returnWindowDays
           ? commercialTerms.satisfaitDays
             ? `Satisfait ou remboursé : vous avez ${commercialTerms.satisfaitDays} jours après réception pour nous renvoyer un article neuf et complet.`
-            : `Vous disposez de ${commercialTerms.returnWindowDays} jours pour changer d'avis après réception.`
+            : `Pour les produits standard, vous disposez de ${commercialTerms.returnWindowDays} jours pour changer d'avis après réception (les produits fabriqués sur mesure en sont exclus).`
           : null,
       ].filter((texte): texte is string => texte !== null)
       if (rappels.length > 0) blocks.push({ type: 'note', text: rappels.join(' ') })
